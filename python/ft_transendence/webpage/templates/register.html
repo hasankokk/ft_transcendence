@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="wrapper32 mt-10" id="registerCard" style="display: none">
+		
+      <form method="POST" action="{% url 'register' %}">
+        <h2>Register</h2>
+        <div class="input-group31">
+          <span class="icon">
+            <ion-icon name="person"></ion-icon>
+          </span>
+          <input
+            type="text"
+            placeholder="Username"
+            required name="username"
+          />
+        </div>
+        <div class="input-group31">
+          <span class="icon">
+            <ion-icon name="mail"></ion-icon>
+          </span>
+          <input
+            type="email"
+            placeholder="Email"
+            required name="email"
+          />
+        </div>
+        <div class="input-group31">
+          <span class="icon">
+            <ion-icon name="lock-closed"></ion-icon>
+          </span>
+          <input
+            type="password"
+            placeholder="Password"
+            required name="password1"
+          />
+        </div>
+        <div class="input-group31">
+          <span class="icon">
+            <ion-icon name="lock-closed"></ion-icon>
+          </span>
+          <input
+            type="password"
+            placeholder="Re-Password"
+            required name="password2"
+          />
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn31" id="registerButton">
+          Register
+        </button>
+        <div class="sign-link31">
+          <p>
+            You have already an account?
+            <a href="#" class="register-link31" id="loginLink">Sign in</a>
+          </p>
+        </div>
+    </form>
+    </div>
+{% endblock content %}
