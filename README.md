@@ -2,6 +2,7 @@
 
 ## Makefile
 - `sudo make [start, up]` ile container kurabilirsiniz
+    - Container başlatıldığında Django hemen database'e bağlanmaya çalışacağından dolayı eğer Database sıfırdan kuruluyorsa ilk çalıştırmada hata çıkacaktır. Container durdurulup tekrar çalıştırıldığında problem olmayacaktır.
 - `sudo make (stop, down)` ile container'ı durdurabilirsiniz
 - `sudo make (refresh, re)` ile oluşturulmuş image, database, ve migration'lar silinir
 - `make migrations` debugging amaçlıdır,  silinecek migration dosyalarını gösterir
@@ -25,3 +26,28 @@
 	olarak değiştirilecektir.
 - JS, CSS dosyaları `BASEDIR/static` içinde uygulamalara göre sınıflandırılmış şekilde bulunur
 - Kullanıcı avatarları `BASEDIR/media/image/user` içinde kaydedilecektir
+
+## Docker kullanamıyorsanız
+Database'i geçici olarak postgresql'dan sqlite'a değiştirebilirsiniz. Bunun için `BASEDIR/ft_transcendence/settings.py` içinde bulunan
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": "db",
+        "PORT": 5432,
+        #"NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+```
+kısmını şu kod ile değiştirin,
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+```
