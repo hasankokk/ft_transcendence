@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ft_transcendence
+      - POSTGRES_USER=ecole
+      - POSTGRES_PASSWORD=super_secret_password
+  web:
+    build: src/web
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - type: bind
+        source: src/web/ft_transcendence
+        target: /code
+    ports:
+      - "3600:8000"
+    depends_on:
+      - db
+    environment:
+      - POSTGRES_DB=ft_transcendence
+      - POSTGRES_USER=ecole
+      - POSTGRES_PASSWORD=super_secret_password
+
+volumes:
+  postgres:
