@@ -27,6 +27,10 @@
 - JS, CSS dosyaları `BASEDIR/static` içinde uygulamalara göre sınıflandırılmış şekilde bulunur
 - Kullanıcı avatarları `BASEDIR/media/image/user` içinde kaydedilecektir
 
+
+## Container yapısı
+- Django'ya ait dosyalar bind volume ile container'da yer aldığı için kod üzerinde yapılan değişiklikler server'i veya container'ı kapatıp açmaya ihtiyaç duymadan anında sayfa üzerinde görmeyi sağlar. Eğer JS dosyalarında yapılan değişiklikler sayfada görünmüyorsa tarayıcının cache'ini sıfırlamak gerekiyor.
+
 ## Docker kullanamıyorsanız
 - Database'i geçici olarak postgresql'dan sqlite'a değiştirebilirsiniz. Bunun için `BASEDIR/ft_transcendence/settings.py` içinde bulunan
     ```python
@@ -52,7 +56,7 @@
     }
     ```
 - Problemle karşılaşmamak için database değiştirmeden önce Makefile'da bulunan migrations silme kodunu kullanın. `settings.py` dosyasını ayarladıktan sonra şu kodu çalıştırın,
-```python
-python manage.py makemigrations
-python manage.py migrate
-```
+    ```python
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
