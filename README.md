@@ -28,26 +28,31 @@
 - Kullanıcı avatarları `BASEDIR/media/image/user` içinde kaydedilecektir
 
 ## Docker kullanamıyorsanız
-Database'i geçici olarak postgresql'dan sqlite'a değiştirebilirsiniz. Bunun için `BASEDIR/ft_transcendence/settings.py` içinde bulunan
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": "db",
-        "PORT": 5432,
-        #"NAME": BASE_DIR / "db.sqlite3",
+- Database'i geçici olarak postgresql'dan sqlite'a değiştirebilirsiniz. Bunun için `BASEDIR/ft_transcendence/settings.py` içinde bulunan
+    ```python
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": os.environ.get("POSTGRES_DB"),
+            "USER": os.environ.get("POSTGRES_USER"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+            "HOST": "db",
+            "PORT": 5432,
+            #"NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
-```
-kısmını şu kod ile değiştirin,
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    ```
+    kısmını şu kod ile değiştirin,
+    ```python
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+    ```
+- Problemle karşılaşmamak için database değiştirmeden önce Makefile'da bulunan migrations silme kodunu kullanın. `settings.py` dosyasını ayarladıktan sonra şu kodu çalıştırın,
+```python
+python manage.py makemigrations
+python manage.py migrate
 ```
