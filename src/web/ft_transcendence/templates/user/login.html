@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+{% block description %}Login Page of Ft_transcendence{% endblock %}
+
+{% load static %}
+
+{% block content %}
+<div class="wrapper31" id="loginCard">
+  <form action="{% url 'user:login' %}" method="POST" id="login-form">
+    <h2>Login</h2>
+    {% csrf_token %}
+    <div class="input-group31">
+      <span class="icon">
+        <ion-icon name="person"></ion-icon>
+      </span>
+      <input
+        type="text"
+        placeholder="Username"
+        name="username"
+        required=""
+        name="username"
+        id="id_username"
+      />
+    </div>
+    <div class="input-group31">
+      <span class="icon">
+        <ion-icon name="lock-closed"></ion-icon>
+      </span>
+      <input
+        type="password"
+        placeholder="Password"
+        name="password"
+        required=""
+        name="password"
+        id="id_password"
+      />
+    </div>
+    <button type="submit" class="btn31" id="loginButton">Login</button>
+  </form>
+
+  {% include 'messages.html' %}
+
+  <div class="sign-link31">
+    <p>
+      Don't have an account?
+      <a href="{% url 'user:register' %}" class="register-link31" id="registerLink"
+        >Register</a
+      >
+    </p>
+  </div>
+  <div class="text-center">
+    <a href="{% url 'user:oauth-callback' %}" class="oauth-button">
+      <img
+        src="{% static '42_Logo.png' %}"
+        class="rounded"
+        alt="OAuth Login"
+      />
+    </a>
+  </div>
+</div>
+{% endblock %}

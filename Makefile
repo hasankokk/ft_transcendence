@@ -1,4 +1,5 @@
 WEB_PATH=src/web/ft_transcendence
+PARENT_DIR=$(notdir $(CURDIR))
 
 all: start
 
@@ -9,9 +10,9 @@ stop:
 	docker-compose down
 
 refresh:
-	docker image rm -f ft_transcendence-web
+	docker image rm -f $(PARENT_DIR)-web
 	docker system prune
-	docker volume rm -f ft_transcendence_postgres
+	docker volume rm -f $(PARENT_DIR)_postgres
 	find $(WEB_PATH) -path "*/migrations/*.py" -not -name "__init__.py" -delete
 	find $(WEB_PATH) -path "*/migrations/*.pyc" -delete
 

@@ -4,11 +4,15 @@ from django.conf import settings
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-class UserRegistrationForm(UserCreationForm): # Maybe switch to BaseUserCreationForm?
+class UserLoginForm(forms.Form):
+    username = forms.CharField(label="Username", max_length=20, widget=forms.TextInput())
+    password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
-    # email = forms.EmailField(label='Email', max_length=150, help_text=_('Required. Inform a valid email address.'))
-    image = forms.ImageField(label='User Image', help_text=_('Optional. Upload an image for user profile.'), required=False)
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'password']
 
+class UserRegistrationForm(BaseUserCreationForm):
     class Meta(BaseUserCreationForm.Meta):
         model = get_user_model()
-        fields = BaseUserCreationForm.Meta.fields + ("image",)
+        fields = BaseUserCreationForm.Meta.fields + ("email",)

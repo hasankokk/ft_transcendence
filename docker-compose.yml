@@ -10,6 +10,11 @@ services:
       - POSTGRES_DB=ft_transcendence
       - POSTGRES_USER=ecole
       - POSTGRES_PASSWORD=super_secret_password
+    healthcheck:
+      test: "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h db"
+      interval: 5s
+      timeout: 10s
+      retries: 5
   web:
     build: src/web
     command: >
@@ -23,7 +28,9 @@ services:
     ports:
       - "3600:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+        restart: true
     environment:
       - POSTGRES_DB=ft_transcendence
       - POSTGRES_USER=ecole

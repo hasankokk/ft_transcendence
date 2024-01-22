@@ -1,7 +1,10 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 
 from django.contrib.auth import logout, authenticate, login, get_user_model
+from django.contrib import messages
+from django.shortcuts import render, HttpResponseRedirect, reverse
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 import json
 import logging # is this necessary?
@@ -16,53 +19,92 @@ logger = logging.getLogger(__name__)
 
 def registerView(request):
 
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            form = forms.UserRegistrationForm(data)
-            if form.is_valid():
+    if request.method == 'GET':
+        context = {'form': forms.UserRegistrationForm().render("user/form_snippet.html")}
+        return render(request, "user/register.html", context)
+
+    elif request.method == 'POST':
+        form = forms.UserRegistrationForm(data=request.POST)
+
+        if form.is_valid():
+            try:
                 user = form.save()
-                logger.info('User %s registered', user.username)
-                return JsonResponse({'status': 'success', 'message': 'Registration successful'})
-            else:
-                errors = form.errors.as_json()
-                return JsonResponse({'status': 'error', 'errors': errors}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-        except Exception as e:
-            print(e)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+            except ValueError as e:
+                for msg in e.args:
+                    messages.error(request, msg)
+                return HttpResponseRedirect(request.path)
+            except:
+                messages.error(request, _("An error occured while registering user in the database"))
+                return HttpResponseRedirect(request.path)
+            messages.success(request, _("Successfully registered"))
+            return HttpResponseRedirect(request.path)
+
+        else:
+            password1 = form.data["password1"]
+            password2 = form.data["password2"]
+            username = form.data["username"]
+            email = form.data["email"]
+
+            for error in form.errors:
+                if error == 'email':
+                    if get_user_model().objects.filter(email=email).exists():
+                        messages.error(request, _("Email is already taken"))
+                    else:
+                        messages.error(request, _("Invalid email"))
+                elif error == 'password2' and password1 == password2:
+                    messages.error(request, _("The password is not strong enough"))
+                elif error == 'password2' and password1 != password2:
+                    messages.error(request, _("The passwords do not match"))
+                elif error == 'username':
+                    if get_user_model().objects.filter(username=username).exists():
+                        messages.error(request, _("Username is already taken"))
+                    else:
+                        messages.error(request, _("Invalid username" + error))
+                else:
+                    messages.error(request, _("Invalid form error: " + error))
+            return HttpResponseRedirect(request.path)
+
+    return Http404(_("Invalid request method"))
 
 def loginView(request):
     
-    # Should use login() here ?
+    if request.method == 'GET':
+        if not request.user.is_authenticated:
+            form = forms.UserLoginForm()
+            return render(request, "user/login.html", {'form': form})
+        else:
+            return HttpResponseRedirect(reverse("game:index"))
 
-    if request.user.is_authenticated:
-        return JsonResponse({'status': 'success', 'message': 'Already authenticated'})
+    elif request.method == 'POST':
+        form = forms.UserLoginForm(data=request.POST)
 
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            username = data.get('username')
-            password = data.get('password')
-            if not username or not password:
-                return JsonResponse({'status': 'error', 'message': 'Username and password are required'}, status=400)
-
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
             user = authenticate(request, username=username, password=password)
+
             if user != None:
-                logger.info('User logged in successfully')
-                return JsonResponse({'status': 'success', 'message': 'Login successful'})
+                login(request, user)
+                messages.success(request, _("Login successful"))
+                return HttpResponseRedirect(reverse("game:index"))
             else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid username or password'}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+                messages.error(request, _("Incorrect username or password"))
+                return HttpResponseRedirect(request.path)
+        else:
+            for error in form.errors:
+                messages.error(request, error)
+            return HttpResponseRedirect(request.path)
+
+    return Http404(_("Invalid request method"))
 
 def logoutView(request):
     
-    logout(request)
-    return JsonResponse({'status': 'success', 'message': 'Successfully logged out'})
-
+    if request.user.is_authenticated:
+        logout(request)
+        messages.success(request, _("Logout successful"))
+    else:
+        messages.warning(request, _("User is already logged out"))
+    return HttpResponseRedirect(reverse("index"))
 
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
