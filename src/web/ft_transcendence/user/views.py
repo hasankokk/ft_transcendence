@@ -5,12 +5,19 @@ from django.contrib import messages
 from django.shortcuts import render, HttpResponseRedirect, reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_GET
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.parsers import JSONParser
+from rest_framework import status
 
 import json
 import logging # is this necessary?
 import requests # is this necessary?
 
 from . import forms
+from . import serializers
 
 TOKEN_URL = "https://api.intra.42.fr/oauth/token"
 AUTHORIZATION_URL = "https://api.intra.42.fr/oauth/authorize"
@@ -66,42 +73,42 @@ def registerView(request):
 
     return Http404(_("Invalid request method"))
 
-def loginView(request):
-    
-    if request.method == 'GET':
-        if not request.user.is_authenticated:
-            form = forms.UserLoginForm()
-            return render(request, "user/login.html", {'form': form})
+@require_GET
+def loginFormView(request):
+    if not request.user.is_authenticated:
+        form = forms.UserLoginForm()
+        return render(request, "user/login.html", {'form': form})
+    else:
+        return HttpResponseRedirect(reverse("game:index"))
+
+@api_view(['POST'])
+def loginSubmitAPI(request):
+    data = JSONParser().parse(request)
+    serializer = serializers.UserLoginSerializer(data=data)
+
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+        user = authenticate(request, username=username, password=password)
+
+        if user != None:
+            login(request, user) # TODO: Remove after implementing JWT
+            messages.success(request, _("Login successful"))
+            return Response({"Your Token": "Very secure random token"})
         else:
-            return HttpResponseRedirect(reverse("game:index"))
-
-    elif request.method == 'POST':
-        form = forms.UserLoginForm(data=request.POST)
-
-        if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
-            user = authenticate(request, username=username, password=password)
-
-            if user != None:
-                login(request, user)
-                messages.success(request, _("Login successful"))
-                return HttpResponseRedirect(reverse("game:index"))
-            else:
-                messages.error(request, _("Incorrect username or password"))
-                return HttpResponseRedirect(request.path)
-        else:
-            for error in form.errors:
-                messages.error(request, error)
-            return HttpResponseRedirect(request.path)
-
-    return Http404(_("Invalid request method"))
+            messages.error(request, _("Incorrect username or password"))
+            return HttpResponseRedirect(reverse("user:login"), status=401)
+            #return Response({"message": "Login credentials incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        for error in serializer.errors:
+            messages.error(request, "Invalid Serializer:" + error)
+        return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
 
 def logoutView(request):
     
     if request.user.is_authenticated:
         logout(request)
-        messages.success(request, _("Logout successful"))
+        messages.info(request, _("Logout successful"))
     else:
         messages.warning(request, _("User is already logged out"))
     return HttpResponseRedirect(reverse("index"))

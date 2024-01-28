@@ -6,8 +6,12 @@
 {% load static %}
 
 {% block content %}
+
+<script src="{% static 'user/submitForm.js' %}"></script>
+
 <div class="wrapper31" id="loginCard">
-  <form action="{% url 'user:login' %}" method="POST" id="login-form">
+  <form action="{% url 'user:login-submit' %}" id="login-form"
+  onsubmit="event.preventDefault(); return submitForm(this);">
     <h2>Login</h2>
     {% csrf_token %}
     <div class="input-group31">
@@ -19,7 +23,6 @@
         placeholder="Username"
         name="username"
         required=""
-        name="username"
         id="id_username"
       />
     </div>
@@ -32,7 +35,6 @@
         placeholder="Password"
         name="password"
         required=""
-        name="password"
         id="id_password"
       />
     </div>
