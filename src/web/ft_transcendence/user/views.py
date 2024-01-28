@@ -5,12 +5,17 @@ from django.contrib import messages
 from django.shortcuts import render, HttpResponseRedirect, reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.decorators.http import require_GET
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 from rest_framework import status
+
+from rest_framework_simplejwt.tokens import RefreshToken
 
 import json
 import logging # is this necessary?
@@ -24,13 +29,13 @@ AUTHORIZATION_URL = "https://api.intra.42.fr/oauth/authorize"
 
 logger = logging.getLogger(__name__)
 
-def registerView(request):
+class RegisterView(View):
 
-    if request.method == 'GET':
+    def get(self, request):
         context = {'form': forms.UserRegistrationForm().render("user/form_snippet.html")}
         return render(request, "user/register.html", context)
 
-    elif request.method == 'POST':
+    def post(self, request):
         form = forms.UserRegistrationForm(data=request.POST)
 
         if form.is_valid():
@@ -71,8 +76,6 @@ def registerView(request):
                     messages.error(request, _("Invalid form error: " + error))
             return HttpResponseRedirect(request.path)
 
-    return Http404(_("Invalid request method"))
-
 @require_GET
 def loginFormView(request):
     if not request.user.is_authenticated:
@@ -92,22 +95,23 @@ def loginSubmitAPI(request):
         user = authenticate(request, username=username, password=password)
 
         if user != None:
-            login(request, user) # TODO: Remove after implementing JWT
+            refresh = RefreshToken.for_user(user)
+            # TODO: set cookies
             messages.success(request, _("Login successful"))
-            return Response({"Your Token": "Very secure random token"})
+            return Response({'refresh': str(refresh), 'access': str(refresh.access_token)})
         else:
             messages.error(request, _("Incorrect username or password"))
             return HttpResponseRedirect(reverse("user:login"), status=401)
-            #return Response({"message": "Login credentials incorrect"}, status=status.HTTP_401_UNAUTHORIZED)
     else:
         for error in serializer.errors:
             messages.error(request, "Invalid Serializer:" + error)
         return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
 
+@api_view(['GET', 'POST'])
 def logoutView(request):
     
-    if request.user.is_authenticated:
-        logout(request)
+    if request.auth:
+        # TODO: Delete tokens from cookies
         messages.info(request, _("Logout successful"))
     else:
         messages.warning(request, _("User is already logged out"))
@@ -153,3 +157,26 @@ def oauth_callback(request):
         else:
             return HttpResponse(msg_oauthFailure)
     return HttpResponse(msg_oauthFailure)
+
+# =================
+#  Views for debug
+# =================
+
+@require_GET # Uses default session-based Django authentication
+def checkuser(request):
+    if request.user.is_authenticated:
+        return HttpResponse("You are authenticated\n")
+    else:
+        return HttpResponse("You are NOT authenticated\n", status="401")
+
+@api_view(['GET']) # Restricted view for DRF authentication
+@permission_classes([IsAuthenticated])
+def checkuser2(request):
+    return HttpResponse("You are authenticated\n")
+
+@api_view(['GET']) # Different responses for (un)authenticated requests
+def checkuser3(request):
+    if request.auth:
+        return HttpResponse("You are authenticated\n" + str(request.auth))
+    else:
+        return HttpResponse("You are NOT authenticated\n", status="401")

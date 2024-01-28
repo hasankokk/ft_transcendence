@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_simplejwt.views import TokenVerifyView
 
 from . import views
 
@@ -24,4 +25,5 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("user/", include("user.urls")),
     path("game/", include("game.urls")),
+    path("verify-token/", TokenVerifyView.as_view(), name="token_verify"),
 ]
