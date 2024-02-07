@@ -1,4 +1,4 @@
-WEB_PATH=src/web/ft_transcendence
+WEB_PATH=src/user-web/ft_transcendence # Add more for new web microservies
 PARENT_DIR=$(notdir $(CURDIR))
 
 all: start
@@ -10,9 +10,9 @@ stop:
 	docker-compose down
 
 refresh:
-	docker image rm -f $(PARENT_DIR)-web
+	docker image rm -f $(PARENT_DIR)-user-web # Add more for new web microservices
 	docker system prune
-	docker volume rm -f $(PARENT_DIR)_postgres
+	docker volume rm -f $(PARENT_DIR)_user-postgres # Add more for new web microservices
 	find $(WEB_PATH) -path "*/migrations/*.py" -not -name "__init__.py" -delete
 	find $(WEB_PATH) -path "*/migrations/*.pyc" -delete
 
