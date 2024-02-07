@@ -135,6 +135,26 @@ h2 {
   color: #090e0d;
 }
 
+.btn-dark {
+  background: #060808;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  transition: 0.5s;
+}
+
+.btn-dark:hover, .btn-dark:focus{
+  background: #ffffff;
+  color: #060808;
+}
+
+.btn-logout:hover {
+  background: rgb(200, 200, 200);
+  color: #b21105;
+}
+
 .sign-link31 {
   font-size: 0.9em;
   text-align: center;

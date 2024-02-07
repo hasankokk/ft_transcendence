@@ -22,7 +22,7 @@ services:
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             gunicorn -b '0.0.0.0:8002' --reload ft_transcendence.wsgi"
+             gunicorn -b \'0.0.0.0:8002\' --reload ft_transcendence.wsgi --reload-extra-file templates/index.html"
     volumes:
       - type: bind
         source: src/user-web/ft_transcendence
