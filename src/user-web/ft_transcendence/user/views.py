@@ -1,5 +1,6 @@
 from django.http import JsonResponse, HttpResponse, Http404
 
+from django.db.models import Q
 from django.contrib.auth import logout, authenticate, login, get_user_model
 from django.contrib import messages
 from django.shortcuts import render, HttpResponseRedirect, reverse
@@ -24,6 +25,7 @@ import requests # is this necessary?
 
 from . import forms
 from . import serializers
+from user.models import UserRelationship
 
 TOKEN_URL = "https://api.intra.42.fr/oauth/token"
 AUTHORIZATION_URL = "https://api.intra.42.fr/oauth/authorize"
@@ -157,6 +159,53 @@ def oauth_callback(request):
         else:
             return HttpResponse(msg_oauthFailure)
     return HttpResponse(msg_oauthFailure)
+
+class FriendRequestView(APIView):
+    def get(self, request):
+        return Response({"warning": "unimplemented"})
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = serializers.UserPairSerializer(data=data)
+
+        if serializer.is_valid():
+            sender = serializer.validated_data['sender']
+            receiver = serializer.validated_data['receiver']
+
+            try:
+                if sender < receiver:
+                    obj = UserRelationship.objects.get(Q(user1=sender),
+                                                       Q(user2=receiver))
+                    if obj.is_pending_user2():
+                        obj.type = UserRelationship.UserRelationshipType.FRIENDS
+                        obj.save()
+                        return Response({'success': 'Accepted friend request'})
+                    else:
+                        return Response({'error': 'Friend request cannot be sent'})
+                else:
+                    obj = UserRelationship.objects.get(Q(user2=sender),
+                                                       Q(user1=receiver))
+                    if obj.is_pending_user1():
+                        obj.type = UserRelationship.UserRelationshipType.FRIENDS
+                        obj.save()
+                        return Response({'success': 'Accepted friend request'})
+                    else:
+                        return Response({'error': 'Friend request cannot be sent'})
+            except UserRelationship.DoesNotExist:
+                # create new relationship
+                if sender < receiver:
+                    obj = UserRelationship.objects.create(user1=sender, user2=receiver,
+                                                          type=UserRelationship.UserRelationshipType.PENDING12)
+                else:
+                    obj = UserRelationship.objects.create(user2=sender, user1=receiver,
+                                                          type=UserRelationship.UserRelationshipType.PENDING21)
+                if obj is None:
+                    return Response({'error': 'Cannot create user relationship'})
+                else:
+                    return Response({'success': 'Friend request has been sent'})
+        else:
+            for error in serializer.errors:
+                messages.error(request, "Invalid Serializer:" + error)
+            return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
 
 # =================
 #  Views for debug

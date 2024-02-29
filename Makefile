@@ -1,9 +1,10 @@
-WEB_PATH=src/user-web/ft_transcendence # Add more for new web microservies
+WEB_PATH=src/user-web/ft_transcendence
 PARENT_DIR=$(notdir $(CURDIR))
 
 all: start
 
 start:
+	mkdir -p $(WEB_PATH)/staticfiles
 	docker-compose up
 
 stop:
@@ -15,6 +16,7 @@ refresh:
 	docker volume rm -f $(PARENT_DIR)_user-postgres # Add more for new web microservices
 	find $(WEB_PATH) -path "*/migrations/*.py" -not -name "__init__.py" -delete
 	find $(WEB_PATH) -path "*/migrations/*.pyc" -delete
+	find $(WEB_PATH)/staticfiles -delete
 
 up: start
 down: stop

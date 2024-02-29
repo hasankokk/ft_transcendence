@@ -13,6 +13,7 @@ urlpatterns = [
     path("get-oauth-url/", views.get_oauth_url, name="get-oauth-url"),
     path("verify-token/", TokenVerifyView.as_view(), name="token_verify"),
     path("refresh-token/", TokenRefreshView.as_view(), name='token_refresh'),
+    path("friend-request/", views.FriendRequestView.as_view(), name="friend-request"),
     # =================
     #  Views for debug
     # =================

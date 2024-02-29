@@ -1,3 +1,6 @@
 from django.test import TestCase
+#from user.models import Friends
 
-# Create your tests here.
+#class FriendsTestCase(TestCase):
+#    def setUp(self):
+#

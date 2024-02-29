@@ -10,3 +10,6 @@ class UserLoginSerializer(serializers.Serializer):
         model = get_user_model()
         fields = ['username', 'password']
 
+class UserPairSerializer(serializers.Serializer):
+    sender = serializers.CharField(label=_("Sender"))
+    receiver = serializers.CharField(label=_("Receiver"))
