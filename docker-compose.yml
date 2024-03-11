@@ -29,7 +29,7 @@ services:
         source: src/user-web/ft_transcendence
         target: /code
     expose:
-      - "8000"
+      - "8002"
     depends_on:
       user-db:
         condition: service_healthy
@@ -56,6 +56,35 @@ services:
       - "8001"
     depends_on:
       - user-web
+
+  chat-web:
+    build: src/chat-web
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py collectstatic --no-input &&
+             gunicorn -b \'0.0.0.0:8002\' --reload chat.wsgi --reload-extra-file templates/"
+    volumes:
+      - type: bind
+        source: src/chat-web/chat
+        target: /code
+    expose:
+      - "8002"
+
+  chat-nginx:
+    image: nginx
+    restart: always
+    volumes:
+      - type: bind
+        source: src/chat-web/nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+      - type: bind
+        source: src/chat-web/chat/staticfiles
+        target: /data/static
+    expose:
+      - "8001"
+    depends_on:
+      - chat-web
 
   master-nginx:
     image: nginx
