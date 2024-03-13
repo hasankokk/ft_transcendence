@@ -11,5 +11,4 @@ class UserLoginSerializer(serializers.Serializer):
         fields = ['username', 'password']
 
 class UserPairSerializer(serializers.Serializer):
-    sender = serializers.CharField(label=_("Sender"))
     receiver = serializers.CharField(label=_("Receiver"))

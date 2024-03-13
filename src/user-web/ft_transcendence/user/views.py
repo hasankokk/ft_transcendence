@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Q
 from django.contrib.auth import logout, authenticate, login, get_user_model
 from django.contrib import messages
-from django.shortcuts import render, HttpResponseRedirect, reverse
+from django.shortcuts import get_object_or_404, render, HttpResponseRedirect, reverse
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.views import View
@@ -161,6 +161,9 @@ def oauth_callback(request):
     return HttpResponse(msg_oauthFailure)
 
 class FriendRequestView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         return Response({"warning": "unimplemented"})
     def post(self, request):
@@ -168,15 +171,15 @@ class FriendRequestView(APIView):
         serializer = serializers.UserPairSerializer(data=data)
 
         if serializer.is_valid():
-            sender = serializer.validated_data['sender']
-            receiver = serializer.validated_data['receiver']
+            sender = request.user
+            receiver = get_object_or_404(get_user_model(), username=serializer.validated_data['receiver'])
 
             try:
-                if sender < receiver:
+                if sender.pk < receiver.pk:
                     obj = UserRelationship.objects.get(Q(user1=sender),
                                                        Q(user2=receiver))
                     if obj.is_pending_user2():
-                        obj.type = UserRelationship.UserRelationshipType.FRIENDS
+                        obj.type = UserRelationship.RelationshipType.FRIENDS
                         obj.save()
                         return Response({'success': 'Accepted friend request'})
                     else:
@@ -185,19 +188,19 @@ class FriendRequestView(APIView):
                     obj = UserRelationship.objects.get(Q(user2=sender),
                                                        Q(user1=receiver))
                     if obj.is_pending_user1():
-                        obj.type = UserRelationship.UserRelationshipType.FRIENDS
+                        obj.type = UserRelationship.RelationshipType.FRIENDS
                         obj.save()
                         return Response({'success': 'Accepted friend request'})
                     else:
                         return Response({'error': 'Friend request cannot be sent'})
             except UserRelationship.DoesNotExist:
                 # create new relationship
-                if sender < receiver:
+                if sender.pk < receiver.pk:
                     obj = UserRelationship.objects.create(user1=sender, user2=receiver,
-                                                          type=UserRelationship.UserRelationshipType.PENDING12)
+                                                          type=UserRelationship.RelationshipType.PENDING12)
                 else:
                     obj = UserRelationship.objects.create(user2=sender, user1=receiver,
-                                                          type=UserRelationship.UserRelationshipType.PENDING21)
+                                                          type=UserRelationship.RelationshipType.PENDING21)
                 if obj is None:
                     return Response({'error': 'Cannot create user relationship'})
                 else:
