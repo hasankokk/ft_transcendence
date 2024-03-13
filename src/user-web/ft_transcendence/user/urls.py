@@ -17,6 +17,7 @@ urlpatterns = [
     # =================
     #  Views for debug
     # =================
+	path('check-session/', views.check_session, name='check-session'),
     path("check/", views.checkuser, name="user-check"),
     path("check2/", views.checkuser2, name="user-check2"),
     path("check3/", views.checkuser3, name="user-check3"),

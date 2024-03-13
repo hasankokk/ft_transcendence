@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse, Http404
 from django.db.models import Q
 from django.contrib.auth import logout, authenticate, login, get_user_model
 from django.contrib import messages
-from django.shortcuts import render, HttpResponseRedirect, reverse
+from django.shortcuts import render, HttpResponseRedirect, reverse, redirect
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.views import View
@@ -137,6 +137,10 @@ msg_oauthFailure = """
 </script>
 """
 
+from django.http import HttpResponse
+from django.contrib.auth import get_user_model, login
+import requests
+
 def oauth_callback(request):
     code = request.GET.get('code')
     if code:
@@ -147,18 +151,49 @@ def oauth_callback(request):
             'code': code,
             'redirect_uri': settings.OAUTH_REDIRECT_URI,
         }).json()
+
         access_token = token_response.get("access_token")
         if access_token:
             user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': f'Bearer {access_token}'}).json()
+
+            # Kullanıcıyı oluştur veya güncelle
             user, created = get_user_model().objects.get_or_create(
                 username=user_info.get('login'),
-                defaults={'email': user_info.get('email')}
+                defaults={'email': user_info.get('email'), 'is_42authenticated': True}
             )
-            login(request, user)
-            return HttpResponse(msg_oauthSuccess)
+            if not created:
+                user.is_42authenticated = True
+                user.save()
+
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+            # Kullanıcı başarıyla oturum açtı, ana sayfaya yönlendir
+            return HttpResponse("""
+        <script type="text/javascript">
+            alert('Oturum açma işlemi başarılı. Lütfen ana sayfayı yenileyin.');
+            window.close();
+        </script>
+        """)
         else:
-            return HttpResponse(msg_oauthFailure)
-    return HttpResponse(msg_oauthFailure)
+            # Erişim belirteci alınamadı, hata sayfasına yönlendir
+            return HttpResponse("""
+        <script type="text/javascript">
+            alert('Oturum açma işlemi başarısız. Lütfen tekrar deneyin.');
+            window.close();
+        </script>
+        """)  # İlgili hata sayfanızın URL'ini buraya girin
+    # Code parametresi yok, hata sayfasına yönlendir
+    return HttpResponse("""
+        <script type="text/javascript">
+            alert('Oturum açma işlemi başarısız. Lütfen tekrar deneyin.');
+            window.close();
+        </script>
+        """)  # İlgili hata sayfanızın URL'ini buraya girin
+
+def check_session(request):
+    # Kullanıcının oturum açıp açmadığını kontrol eder
+    is_logged_in = request.user.is_authenticated
+    return JsonResponse({'isLoggedIn': is_logged_in})
 
 class FriendRequestView(APIView):
     def get(self, request):
