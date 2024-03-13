@@ -111,7 +111,7 @@ class LoginView(APIView):
 
 @api_view(['GET', 'POST'])
 def logoutView(request):
-    
+
     if request.user.is_authenticated:
         # TODO: Delete tokens from cookies
         messages.info(request, _("Logout successful"))

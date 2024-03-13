@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-l0@7apy9_gl6d5*7(p))om1-ise_bva3vd#tvd4!x_egh%iet0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'user-web']
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'user-web', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3600"]
 
@@ -202,6 +202,6 @@ SIMPLE_JWT = {
 
 # OAuth settings
 
-OAUTH_CLIENT_ID = 'u-s4t2ud-9d61dcb945ec4bd8477436a3bd23380dbea87cb5df9449d7d3b82f10245216e1'
-OAUTH_CLIENT_SECRET = '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'
-OAUTH_REDIRECT_URI = 'http://127.0.0.1:3600/user/oauth-callback'
+OAUTH_CLIENT_ID = 'u-s4t2ud-1307345cd5a5be6583103bff9605a1c46c7af530dc5ca717f5dc1687b2f147f4'
+OAUTH_CLIENT_SECRET = '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'
+OAUTH_REDIRECT_URI = 'http://127.0.0.1:3600'

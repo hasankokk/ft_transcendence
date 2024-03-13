@@ -31,9 +31,7 @@ services:
     expose:
       - "8002"
     depends_on:
-      user-db:
-        condition: service_healthy
-        restart: true
+      - user-db
     environment:
       - POSTGRES_DB=ft_transcendence
       - POSTGRES_USER=ecole
