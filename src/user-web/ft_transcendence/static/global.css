@@ -14,21 +14,6 @@ body {
   background-position: center;
 }
 
-.card {
-  box-shadow: 0 0 75px #000;
-  text-align: center;
-}
-
-.card-body {
-  font-size: 1em;
-  color: #fff;
-  outline: #000;
-}
-
-.btn-full {
-  width: 100%;
-}
-
 .wrapper31 {
   position: absolute;
   top: 50%;
@@ -135,26 +120,6 @@ h2 {
   color: #090e0d;
 }
 
-.btn-dark {
-  background: #060808;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 5px;
-  border: none;
-  outline: none;
-  transition: 0.5s;
-}
-
-.btn-dark:hover, .btn-dark:focus{
-  background: #ffffff;
-  color: #060808;
-}
-
-.btn-logout:hover {
-  background: rgb(200, 200, 200);
-  color: #b21105;
-}
-
 .sign-link31 {
   font-size: 0.9em;
   text-align: center;
@@ -175,6 +140,19 @@ h2 {
   text-decoration: underline;
 }
 
+.card {
+  background-color: #fff;
+  border-radius: 10px;
+  border: none;
+  position: relative;
+
+  margin-bottom: 60px;
+  /* box-shadow: 0 0.46875rem 2.1875rem rgba(90, 97, 105, 0.1),
+    0 0.9375rem 1.40625rem rgba(90, 97, 105, 0.1),
+    0 0.25rem 0.53125rem rgba(90, 97, 105, 0.12),
+    0 0.125rem 0.1875rem rgba(90, 97, 105, 0.1); */
+  box-shadow: 0 0 40px #fff6f6;
+}
 .l-bg-cherry {
   background: linear-gradient(to right, #241f1f80, #241f1f80) !important;
   color: #fff;
@@ -193,6 +171,24 @@ h2 {
 .l-bg-orange-dark {
   background: linear-gradient(to right, #241f1f80, #241f1f80) !important;
   color: #fff;
+}
+
+.card .card-statistic-3 .card-icon-large .fas,
+.card .card-statistic-3 .card-icon-large .far,
+.card .card-statistic-3 .card-icon-large .fab,
+.card .card-statistic-3 .card-icon-large .fal {
+  font-size: 110px;
+}
+
+.card .card-statistic-3 .card-icon {
+  text-align: center;
+  line-height: 50px;
+  margin-left: 15px;
+  color: #000;
+  position: absolute;
+  right: -5px;
+  top: 20px;
+  opacity: 0.1;
 }
 
 .l-bg-cyan {

@@ -1,22 +1,29 @@
-function handleTab(anchorInstance) {
-    const requestUrl = anchorInstance.getAttribute("href")
-    fetch(requestUrl)
-    .then(response => response.text())
-    .then(text => {
-        element = document.getElementById("main-content");
-        element.innerHTML = text;
-        history.pushState({}, "", requestUrl);
-    })
+document.addEventListener("DOMContentLoaded", function() {
+    document.body.addEventListener("click", function(e) {
+        // Linkleri kontrol et
+        if(e.target.tagName === "A" && e.target.getAttribute("href")) {
+            e.preventDefault(); // Varsayılan davranışı engelle
 
-    return false;
-}
+            const url = e.target.getAttribute("href");
 
-const items = document.getElementsByClassName("nav-item");
-
-for(i = 0; i < items.length; i++) {
-    const anchor = items[i].querySelector("a");
-    anchor.addEventListener('click', e => {
-        e.preventDefault();
-        handleTab(e.currentTarget);
+            fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.body.innerHTML = html; // body içeriğini güncelle
+                history.pushState({path: url}, "", url); // Tarayıcı geçmişine ekle
+            });
+        }
     });
-}
+
+    window.addEventListener('popstate', function(event) {
+        if(event.state) {
+            const url = event.state.path;
+
+            fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.body.innerHTML = html; // İçeriği geri al
+            });
+        }
+    });
+});
