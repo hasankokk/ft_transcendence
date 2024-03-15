@@ -7,7 +7,9 @@ from django.shortcuts import get_object_or_404, render, HttpResponseRedirect, re
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.views import View
+from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
@@ -39,45 +41,46 @@ class RegisterView(View):
         return render(request, "user/register.html", context)
 
     def post(self, request):
-        form = forms.UserRegistrationForm(data=request.POST)
+        
+        form = forms.UserRegistrationForm(data=json.loads(request.body))
 
         if form.is_valid():
             try:
                 user = form.save()
             except ValueError as e:
-                for msg in e.args:
-                    messages.error(request, msg)
-                return HttpResponseRedirect(request.path)
+                return JsonResponse({'success': False, "message": "ValueError", "errors": e.args})
             except:
-                messages.error(request, _("An error occured while registering user in the database"))
-                return HttpResponseRedirect(request.path)
-            messages.success(request, _("Successfully registered"))
-            return HttpResponseRedirect(request.path)
+                return JsonResponse({'success': False, "message": _("An error occured while registering user in the database")})
+            return JsonResponse({'success': True, "message": _("Successfully registered")})
 
         else:
-            password1 = form.data["password1"]
-            password2 = form.data["password2"]
-            username = form.data["username"]
-            email = form.data["email"]
+            password1 = form.data.get("password1", None)
+            password2 = form.data.get("password2", None)
+            username = form.data.get("username", None)
+            email = form.data.get("email", None)
+
+            errors = []
 
             for error in form.errors:
-                if error == 'email':
+                if form.data.get(error, None) is None:
+                    errors.append(_(error + " field is not found"))
+                elif error == 'email':
                     if get_user_model().objects.filter(email=email).exists():
-                        messages.error(request, _("Email is already taken"))
+                        errors.append(_("Email is already taken"))
                     else:
-                        messages.error(request, _("Invalid email"))
+                        errors.append(_("Invalid email"))
                 elif error == 'password2' and password1 == password2:
-                    messages.error(request, _("The password is not strong enough"))
+                    errors.append(_("The password is not strong enough"))
                 elif error == 'password2' and password1 != password2:
-                    messages.error(request, _("The passwords do not match"))
+                    errors.append(_("The passwords do not match"))
                 elif error == 'username':
                     if get_user_model().objects.filter(username=username).exists():
-                        messages.error(request, _("Username is already taken"))
+                        errors.append(_("Username is already taken"))
                     else:
-                        messages.error(request, _("Invalid username" + error))
+                        errors.append(_("Invalid username" + error))
                 else:
-                    messages.error(request, _("Invalid form error: " + error))
-            return HttpResponseRedirect(request.path)
+                    errors.append(_("Invalid form error: " + error))
+            return JsonResponse({'errors': errors})
 
 class LoginView(APIView):
     def get(self, request):
@@ -132,6 +135,7 @@ def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
     return JsonResponse({'oauth_url': oauth_url})
 
+@api_view(['GET', 'POST'])
 def oauth_callback(request):
     code = request.GET.get('code')
     if code:
