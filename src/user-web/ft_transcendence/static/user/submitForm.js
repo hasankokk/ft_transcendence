@@ -1,50 +1,38 @@
 function submitForm(formInstance) {
+    const formData = new FormData(formInstance);
+    const requestUrl = formInstance.getAttribute("action");
 
-    const form = formInstance
-    const formData = new FormData(form);
-	responseUrl = ''
-
-    console.log("SubmitForm Called") // DEBUG
-
-    postData = {}
-    formData.forEach( (value, key) => {
+    let postData = {};
+    formData.forEach((value, key) => {
         postData[key] = value;
     });
 
-    const requestUrl = form.getAttribute("action")
-
-    const headers = new Headers({
-        'Content-Type': 'application/json'
-    });
-
-    console.log("Calling fetch...") // DEBUG
-
     fetch(requestUrl, {
         method: 'POST',
-        headers: headers,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify(postData),
     })
-    .then(response => {
-        if (response.status === 401) {
-            throw new Error("Incorrect username or password"); // DEBUG
-        }
-        else {
-			responseUrl = response.url
-            return response.json();
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.redirect) {
+            // Yönlendirme URL'sini history API ile işle
+            history.pushState(null, '', data.redirect);
+			alert(data.message);
+            // İçeriği yüklemek için SPA'nızın içerik yükleme fonksiyonunu çağırın
+            loadContent(data.redirect);
+        } else {
+            // Giriş başarısızsa veya hata mesajı varsa bunu kullanıcıya göster
+            alert(data.message);
         }
     })
-    .then(data => {
-        console.log(data);
-        window.location.href = responseUrl // Redirect to the same page
-        return true;
-    }) // TODO: Set cookies instead and redirect
     .catch(error => {
-        console.error(error.message);
-        window.location.href = window.location.href // Redirect to the same page
-        return false;
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
     });
 
-    console.log("fetch promise chain complete") // DEBUG
-
-    return true;
+    // Form gönderiminin sayfa yenilenmesine neden olmaması için false dön
+    return false;
 }

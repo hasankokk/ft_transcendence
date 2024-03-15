@@ -31,6 +31,8 @@ ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'user-web', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3600"]
 
+LOGIN_URL = '/user/login/'
+
 # Application definition
 
 INSTALLED_APPS = [

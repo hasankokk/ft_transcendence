@@ -36,12 +36,11 @@
       nomodule
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"
     ></script>
-	<script src="{% static 'user/submitForm.js' %}"></script>
 	<script defer src="{% static 'spa.js' %}"></script>
   </head>
   <body>
     <div class="wrapper32 mt-10" id="registerCard">
-      <form method="POST" id="register-form">
+	  <form method="POST" action="{% url 'user:register' %}" id="register-form">
         <h2>Register</h2>
 		{% csrf_token %}
         {{ form }}
@@ -56,6 +55,6 @@
         </div>
       </form>
     </div>
+	{% include 'messages.html' %}
   </body>
-{% include 'messages.html' %}
 </html>

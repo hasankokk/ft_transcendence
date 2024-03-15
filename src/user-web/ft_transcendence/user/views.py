@@ -1,4 +1,4 @@
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse
 
 from django.db.models import Q
 from django.contrib.auth import logout, authenticate, login, get_user_model
@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.decorators.http import require_GET
+import requests
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
@@ -87,7 +88,7 @@ class LoginView(APIView):
         else:
             return HttpResponseRedirect(reverse("game:index"))
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         serializer = serializers.UserLoginSerializer(data=data)
 
@@ -96,18 +97,28 @@ class LoginView(APIView):
             password = serializer.validated_data['password']
             user = authenticate(request, username=username, password=password)
 
-            if user != None:
+            if user is not None:
+                login(request, user)
                 refresh = RefreshToken.for_user(user)
-                # TODO: set cookies
-                messages.success(request, _("Login successful"))
-                return Response({'refresh': str(refresh), 'access': str(refresh.access_token)})
+                # SPA uyumlu başarılı giriş yanıtı
+                return Response({
+                    'success': True,
+                    'redirect': '/',  # Client-side routing için anasayfaya yönlendirme
+                    'message': _("Login successful")
+                })
             else:
-                messages.error(request, _("Incorrect username or password"))
-                return HttpResponseRedirect(reverse("user:login"), status=401)
+                # Başarısız giriş durumu
+                return Response({
+                    'success': False,
+                    'message': _("Incorrect username or password")
+                }, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            for error in serializer.errors:
-                messages.error(request, "Invalid Serializer:" + error)
-            return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
+            # Geçersiz form verileri
+            return Response({
+                'success': False,
+                'message': _("Invalid login details"),
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def logoutView(request):
@@ -122,24 +133,6 @@ def logoutView(request):
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
     return JsonResponse({'oauth_url': oauth_url})
-
-msg_oauthSuccess = """
-<script type="text/javascript">
-    localStorage.setItem('oauthSuccess', 'true');
-	window.close();
-</script>
-"""
-
-msg_oauthFailure = """
-<script type="text/javascript">
-    localStorage.setItem('oauthFailure', 'true');
-    window.close();
-</script>
-"""
-
-from django.http import HttpResponse
-from django.contrib.auth import get_user_model, login
-import requests
 
 def oauth_callback(request):
     code = request.GET.get('code')
