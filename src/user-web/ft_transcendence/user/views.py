@@ -96,18 +96,27 @@ class LoginView(APIView):
             password = serializer.validated_data['password']
             user = authenticate(request, username=username, password=password)
 
-            if user != None:
+            if user is not None:
                 refresh = RefreshToken.for_user(user)
                 # TODO: set cookies
-                messages.success(request, _("Login successful"))
-                return Response({'refresh': str(refresh), 'access': str(refresh.access_token)})
+                # messages.success(request, _("Login successful"))
+                response = {'success': True,
+                            'redirect': reverse('index'),
+                            'message': _("Login successful"),
+                            'refresh': str(refresh),
+                            'access': str(refresh.access_token)}
+                return Response(response)
             else:
-                messages.error(request, _("Incorrect username or password"))
-                return HttpResponseRedirect(reverse("user:login"), status=401)
+                # messages.error(request, _("Incorrect username or password"))
+                # return HttpResponseRedirect(reverse("user:login"), status=401)
+                response = {'success': False, 'message': _("Incorrect username or password")}
+                return Response(response, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            for error in serializer.errors:
-                messages.error(request, "Invalid Serializer:" + error)
-            return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
+            # for error in serializer.errors:
+            #    messages.error(request, "Invalid Serializer:" + error)
+            response = {'success': False, 'message': _("Invalid login details"),
+                        'errors': serializer.errors}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def logoutView(request):
@@ -123,20 +132,6 @@ def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
     return JsonResponse({'oauth_url': oauth_url})
 
-msg_oauthSuccess = """
-<script type="text/javascript">
-    localStorage.setItem('oauthSuccess', 'true');
-	window.close();
-</script>
-"""
-
-msg_oauthFailure = """
-<script type="text/javascript">
-    localStorage.setItem('oauthFailure', 'true');
-    window.close();
-</script>
-"""
-
 def oauth_callback(request):
     code = request.GET.get('code')
     if code:
@@ -147,18 +142,39 @@ def oauth_callback(request):
             'code': code,
             'redirect_uri': settings.OAUTH_REDIRECT_URI,
         }).json()
+
         access_token = token_response.get("access_token")
         if access_token:
             user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': f'Bearer {access_token}'}).json()
+
+            #TODO: Check if access_token is valid
+
             user, created = get_user_model().objects.get_or_create(
                 username=user_info.get('login'),
-                defaults={'email': user_info.get('email')}
+                defaults={'email': user_info.get('email'), 'is_42authenticated': True}
             )
-            login(request, user)
-            return HttpResponse(msg_oauthSuccess)
+            if not created:
+                # user.is_42authenticated = True
+                user.save()
+
+            refresh = RefreshToken.for_user(user)
+            # login(request, user)
+            response = {'success': True,
+                        'redirect': reverse('index'),
+                        'message': _("login successful"),
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token)}
+            return Response(response)
         else:
-            return HttpResponse(msg_oauthFailure)
-    return HttpResponse(msg_oauthFailure)
+            response = {'success': False, 'message': _("Incorrect access token")}
+            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+    response = {'success': False, 'message': _("Invalid login request")}
+    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def check_session(request):
+    is_logged_in = request.user.is_authenticated
+    return Response({'isLoggedIn': is_logged_in})
 
 class FriendRequestView(APIView):
 
