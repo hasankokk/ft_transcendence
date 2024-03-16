@@ -44,7 +44,10 @@ class RegisterView(View):
 
     def post(self, request):
         
-        form = forms.UserRegistrationForm(data=json.loads(request.body))
+        data = request.POST
+        if len(request.POST) == 0:
+            data = json.loads(request.body)
+        form = forms.UserRegistrationForm(data=data)
 
         if form.is_valid():
             try:
