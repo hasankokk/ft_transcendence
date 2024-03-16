@@ -14,6 +14,7 @@ urlpatterns = [
     path("verify-token/", TokenVerifyView.as_view(), name="token_verify"),
     path("refresh-token/", TokenRefreshView.as_view(), name='token_refresh'),
     path("friend-request/", views.FriendRequestView.as_view(), name="friend-request"),
+    path("two-factor/", views.TwoFactorAuthenticationView.as_view(), name="two-factor"),
     # =================
     #  Views for debug
     # =================

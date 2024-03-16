@@ -20,6 +20,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from django_otp.forms import OTPTokenForm
+from django_otp.plugins.otp_email.models import EmailDevice
 
 import json
 import logging # is this necessary?
@@ -100,15 +102,22 @@ class LoginView(APIView):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                refresh = RefreshToken.for_user(user)
-                # TODO: set cookies
-                # messages.success(request, _("Login successful"))
-                response = {'success': True,
-                            'redirect': reverse('index'),
-                            'message': _("Login successful"),
-                            'refresh': str(refresh),
-                            'access': str(refresh.access_token)}
-                return Response(response)
+                if user.two_fa_auth_type == get_user_model().TwoFAType.NONE:
+                    refresh = RefreshToken.for_user(user)
+                    # TODO: set cookies
+                    # messages.success(request, _("Login successful"))
+                    response = {'success': True,
+                                'redirect': reverse('index'),
+                                'message': _("Login successful"),
+                                'refresh': str(refresh),
+                                'access': str(refresh.access_token)}
+                    return Response(response)
+                else:
+                    request.session["attempting_user"] = user.id
+                    response = {'success': True,
+                                'redirect': reverse('user:two-factor'),
+                                'message': _("Login successful")}
+                    return Response(response)
             else:
                 # messages.error(request, _("Incorrect username or password"))
                 # return HttpResponseRedirect(reverse("user:login"), status=401)
@@ -229,6 +238,21 @@ class FriendRequestView(APIView):
             for error in serializer.errors:
                 messages.error(request, "Invalid Serializer:" + error)
             return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
+
+class TwoFactorAuthenticationView(APIView):
+    def get(self, request):
+        user_id = request.session.get("attempting_user", None)
+        if request.session.get("attempting_user", None) is None:
+            return HttpResponse("Unauthorized Request", status=401)
+        else:
+            user = get_object_or_404(get_user_model(), id=user_id)
+            if user.two_fa_auth_type == get_user_model().TwoFAType.EMAIL:
+                device = get_object_or_404(EmailDevice, user=user)
+                device.generate_challenge()
+            context = {'form': OTPTokenForm(user)}
+            return render(request, "user/two-factor.html", context)
+    def post(self, request):
+        return Response({'message': "POST request is NOT implemented"})
 
 # =================
 #  Views for debug

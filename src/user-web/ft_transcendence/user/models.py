@@ -35,11 +35,18 @@ class UserManager(BaseUserManager):
         return self.create_user(username, email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
+
+    class TwoFAType(models.TextChoices):
+        NONE = "NIL", _("None")
+        EMAIL = "EMA", _("Email")
+        TOTP = "TTP", _("TOTP")
+
     username = models.CharField(_('username'), max_length=25, unique=True)
     email = models.EmailField(_('email address'), unique=True)
     image = models.ImageField(_('user image'), upload_to="image/user", blank=True,
                               default="image/default/user.png")
     is_42authenticated = models.BooleanField(_('is user authenticated by 42'), default=False)
+    two_fa_auth_type = models.CharField(max_length=3, choices=TwoFAType, default=TwoFAType.NONE)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
