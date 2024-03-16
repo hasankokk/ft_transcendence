@@ -29,18 +29,16 @@ function submitForm(formInstance) {
             throw new Error("Incorrect username or password"); // DEBUG
         }
         else {
-			responseUrl = response.url
             return response.json();
+            return false
         }
     })
     .then(data => {
         console.log(data);
-        window.location.href = responseUrl // Redirect to the same page
-        return true;
+        return false;
     }) // TODO: Set cookies instead and redirect
     .catch(error => {
         console.error(error.message);
-        window.location.href = window.location.href // Redirect to the same page
         return false;
     });
 

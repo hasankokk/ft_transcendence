@@ -1,22 +1,28 @@
-function handleTab(anchorInstance) {
-    const requestUrl = anchorInstance.getAttribute("href")
-    fetch(requestUrl)
-    .then(response => response.text())
-    .then(text => {
-        element = document.getElementById("main-content");
-        element.innerHTML = text;
-        history.pushState({}, "", requestUrl);
-    })
-
-    return false;
+const funcMap = {
+    "Home": bindHome,
+    "Login": bindLogin,
+    "Games": bindGame,
+    "Ranking": bindRanking,
+    "Profile": bindProfile,
 }
 
 const items = document.getElementsByClassName("nav-item");
+const main_content = document.getElementById("main-content")
+bindFunc = undefined;
+const observer = new MutationObserver(function(mutations){
+    for (const mutation of mutations) {
+        console.log(mutation); // DEBUG
+    }
+    updateContentAnchors();
+    if (bindFunc !== undefined) {
+        bindFunc();
+    }
+});
+
+observer.observe(main_content, {childList: true})
 
 for(i = 0; i < items.length; i++) {
     const anchor = items[i].querySelector("a");
-    anchor.addEventListener('click', e => {
-        e.preventDefault();
-        handleTab(e.currentTarget);
-    });
+
+    bindAnchor(anchor, funcMap[anchor.text]);
 }
