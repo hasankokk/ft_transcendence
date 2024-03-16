@@ -1,0 +1,59 @@
+<div>
+    <div class="container">
+      <nav class="navbar navbar-expand-lg navbar-custom2 shadow navbar-dark mt-4">
+        <div class="container-fluid">
+          <a href="{% url 'index' %}" class="navbar-brand h1 mb-0">TRANSCENDENCE</a>
+          <button
+            class="navbar-toggler ms-auto"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarContent"
+            aria-controls="navbarContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        <div class="collapse navbar-collapse justify-content-between" id="navbarContent">
+          <ul class="navbar-nav text-center mx-auto pe-lg-4">
+            <li class="nav-item">
+              <a href="{% url 'home' %}" class="nav-link">Home</a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'game:index' %}" class="nav-link">Games</a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link disabled">Ranking</a>
+            </li>
+            <li class="nav-item">
+              <a href="/chat/" class="nav-link">Chat</a>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a href="#" class="nav-link disabled">Profile</a>
+            </li>
+            {% endif %}
+          </ul>
+          <ul class="navbar-nav ms-lg-5 ps-lg-5">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a
+                href="{% url 'user:logout' %}"
+                class="nav-link btn btn-dark btn-logout shadow-sm"
+                id="logoutButton"
+                >Logout</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a
+              href="{% url 'user:login' %}"
+              class="nav-link btn btn-dark shadow-sm"
+              id="loginButton"
+              >Login</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </nav>
+    </div>
+</div>

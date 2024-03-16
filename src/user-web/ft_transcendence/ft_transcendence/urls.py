@@ -23,6 +23,7 @@ from . import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index, name="index"),
+    path("home/", views.home, name="home"),
     path("user/", include("user.urls")),
     path("game/", include("game.urls")),
     path("verify-token/", TokenVerifyView.as_view(), name="token_verify"),
