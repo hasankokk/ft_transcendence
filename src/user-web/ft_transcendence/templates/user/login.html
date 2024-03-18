@@ -1,10 +1,7 @@
 {% load static %}
 
-<script src="{% static 'user/submitForm.js' %}"></script>
-
 <div class="wrapper31" id="loginCard">
-  <form action="{% url 'user:login' %}" id="login-form"
-  onsubmit="event.preventDefault(); return submitForm(this);">
+  <form action="{% url 'user:login' %}" id="login-form">
     <h2>Login</h2>
     {% csrf_token %}
     <div class="input-group31">
@@ -42,6 +39,12 @@
       <a href="{% url 'user:register' %}" class="register-link31" id="registerLink"
         >Register</a
       >
+    </p>
+    <p>
+      Test
+      <a href="{% url 'user:two-factor' %}" class="register-link31" id="2FALink">
+        2FA Auth
+      </a>
     </p>
   </div>
   <div class="text-center">

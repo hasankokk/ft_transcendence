@@ -124,24 +124,22 @@ class LoginView(APIView):
             else:
                 # messages.error(request, _("Incorrect username or password"))
                 # return HttpResponseRedirect(reverse("user:login"), status=401)
-                response = {'success': False, 'message': _("Incorrect username or password")}
+                response = {'success': False, 'errors': [_("Incorrect username or password")]}
                 return Response(response, status=status.HTTP_401_UNAUTHORIZED)
         else:
             # for error in serializer.errors:
             #    messages.error(request, "Invalid Serializer:" + error)
-            response = {'success': False, 'message': _("Invalid login details"),
-                        'errors': serializer.errors}
+            response = {'success': False, 'errors': serializer.errors}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def logoutView(request):
-    
     if request.user.is_authenticated:
         # TODO: Delete tokens from cookies
-        messages.info(request, _("Logout successful"))
+        return Response({'success': True, 'message': _("Logout successful")})
     else:
         messages.warning(request, _("User is already logged out"))
-    return HttpResponseRedirect(reverse("index"))
+        return Response({'success': False, 'errors': [_("User is already logged out")]})
 
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
@@ -245,14 +243,19 @@ class FriendRequestView(APIView):
 class TwoFactorAuthenticationView(APIView):
     def get(self, request):
         user_id = request.session.get("attempting_user", None)
-        if request.session.get("attempting_user", None) is None:
-            return HttpResponse("Unauthorized Request", status=401)
+        if user_id is None:
+            return render(request, "error.html", {'error': "Unauthorized Request"}, status=401)
+            
         else:
             user = get_object_or_404(get_user_model(), id=user_id)
             if user.two_fa_auth_type == get_user_model().TwoFAType.EMAIL:
                 device = get_object_or_404(EmailDevice, user=user)
-                device.generate_challenge()
-            context = {'form': OTPTokenForm(user)}
+                # device.generate_challenge()
+            else:
+                return HttpResponse("No two-factor authentication device registered for the user #" + str(user_id), status=401)
+            
+            form = OTPTokenForm(user).render("user/2fa_snippet.html")
+            context = {'form': form}
             return render(request, "user/two-factor.html", context)
     def post(self, request):
         return Response({'message': "POST request is NOT implemented"})

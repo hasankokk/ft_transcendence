@@ -1,1 +1,27 @@
-{{ form }}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card bg-transparent" id="2faCard">
+          <div class="card-body">
+            <form action="{% url 'user:two-factor' %}" method="POST" id="2fa-form">
+              <h2 class="mb-5">Two Factor Authentication</h2>
+              {% csrf_token %}
+              {{ form }}
+              <button type="submit" class="btn btn-full btn-dark mb-4" id="2FAButton">
+                Submit
+              </button>
+            </form>
+            
+            {% include 'messages.html' %}
+  
+            <div class="sign-link31 m-0">
+              <p>
+                You have already an account?
+                <a href="{% url 'user:login' %}" class="register-link31" id="loginLink">Sign in</a>
+              </p>
+            </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
