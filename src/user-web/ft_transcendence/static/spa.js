@@ -42,17 +42,13 @@ for(i = 0; i < items.length; i++) {
     bindAnchor(anchor, funcMap[anchor.text]);
 }
 
-history.replaceState(getState("/home", funcMap['Home']), "", "")
+window.addEventListener('load', (e) => {
+    if (history.state == null) {
+        history.replaceState(getState("/home", funcMap['Home']), "", "")
+    }
+    loadHistoryEvent(history);
+});
 
 window.addEventListener("popstate", (e) => {
-    const path = e.state.path;
-    const binder_name = e.state.binder_name;
-    const binder = binder_name !== null ? window[binder_name] : null;
-
-    //console.log(path); // DEBUG
-    //console.log(binder_name); // DEBUG
-    //console.log(binder) // DEBUG
-
-    bindFunc = binder;
-    loadContent(path, false);
+    loadHistoryEvent(e);
 });

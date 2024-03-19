@@ -88,6 +88,19 @@ function loadContentEvent(event) {
     loadContent(event.currentTarget);
 }
 
+function loadHistoryEvent(event) {
+    const path = event.state.path;
+    const binder_name = event.state.binder_name;
+    const binder = binder_name !== null ? window[binder_name] : null;
+
+    //console.log(path); // DEBUG
+    //console.log(binder_name); // DEBUG
+    //console.log(binder) // DEBUG
+
+    bindFunc = binder;
+    loadContent(path, false);
+}
+
 function getState(path, binder) {
     return {
         'path': path,
