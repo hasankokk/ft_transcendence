@@ -1,4 +1,4 @@
-WEB_PATHS=src/chat-web/chat src/user-web/ft_transcendence
+WEB_PATHS=src/chat-web/chat src/user-web/ft_transcendence src/game-web/games
 STATIC_FILES=$(addsuffix /staticfiles, $(WEB_PATHS))
 PARENT_DIR=$(notdir $(CURDIR))
 
@@ -19,6 +19,7 @@ refresh:
 	docker system prune
 	docker volume rm -f $(PARENT_DIR)_user-postgres # Add more for new web microservices
 	rm -f src/chat-web/chat/db.sqlite3
+	rm -f src/game-web/games/db.sqlite3
 	$(foreach dir, $(WEB_PATHS), find $(dir) -path "*/migrations/*.py" -not -name "__init__.py" -delete ;)
 	$(foreach dir, $(WEB_PATHS), find $(dir) -path "*/migrations/*.pyc" -delete ;)
 	$(foreach dir, $(WEB_PATHS), find $(dir)/staticfiles -delete ;)
