@@ -2,7 +2,7 @@ function bindLogin() {
     //addEventListener on #loginButton for submitForm()
     //addEventListener on .oauth-button for 42Login
 
-    document.getElementById("loginButton").addEventListener('click', e => {
+    document.getElementById("loginSubmitButton").addEventListener('click', e => {
         e.preventDefault();
         submitForm(e.currentTarget.form);
     });

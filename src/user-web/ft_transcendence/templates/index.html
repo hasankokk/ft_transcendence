@@ -6,13 +6,13 @@
 
 {% include 'navbar.html' %}
 
-<div class="container mt-5 p-5">
+<div class="container-lg">
   {% if messages %}
-  <div class="row m-2">
+  <div class="row p-1">
     {% include 'messages_dismissible.html' %}
   </div>
   {% endif %}
-  <div class="row mt-5" id="main-content">
+  <div class="row pt-5 justify-content-center" id="main-content">
 
   {% include 'home.html' %}
   

@@ -12,10 +12,25 @@ bindFunc = undefined;
 const observer = new MutationObserver(function(mutations){
     for (const mutation of mutations) {
         console.log(mutation); // DEBUG
-    }
-    updateContentAnchors();
-    if (bindFunc !== undefined) {
-        bindFunc();
+
+        mutation.addedNodes.forEach((element) => {
+            // === DEBUG ===
+            if (!element.tagName){
+                console.log("non class found! " + element.nodeName)
+            }
+            else if (element.classList.contains("eoc")) {
+                console.log("eoc found!")
+                updateContentAnchors();
+                if (bindFunc !== undefined) {
+                    bindFunc();
+                    bindFunc = undefined;
+                }
+            }
+            else {
+                console.log("other class found! " + element.className)
+            }
+            // === DEBUG ===
+        });
     }
 });
 

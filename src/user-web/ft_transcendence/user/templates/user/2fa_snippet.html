@@ -13,6 +13,11 @@
     <option value="{{ x.name }}" {% if field.value == x.name %} selected {% endif %}>{{ x.name }}</option>
     {% endfor %}
 
+    <p>
+        Choices:
+        {{ filed.choices }}
+    </p>
+
     </select>
     {% else %}
 

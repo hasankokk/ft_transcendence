@@ -1,11 +1,11 @@
 .error-wrapper {
-    background-color: #45454580;
+    background-color: #92929214;
     border-radius: 10px;
 }
 
 .error-icon {
     font-size: 10em;
-    background-image: linear-gradient(45deg, #b1290e, #d89416);
+    background-image: linear-gradient(275deg, #c93316, #e9a320);
     background-size: 100%;
     background-clip: text;
     -webkit-background-clip: text;
@@ -15,6 +15,7 @@
 }
 
 .error-text {
-    font-size: 1em;
-    color: #d0472c;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #ffc1b4;
 }

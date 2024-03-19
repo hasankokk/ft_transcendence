@@ -23,7 +23,9 @@ services:
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py collectstatic --no-input &&
-             gunicorn -b \'0.0.0.0:8002\' --reload ft_transcendence.wsgi --reload-extra-file templates/ --reload-extra-file templates/user/ "
+             gunicorn -b \'0.0.0.0:8002\' --reload ft_transcendence.wsgi \
+             --reload-extra-file templates/ --reload-extra-file user/templates/ \
+             --reload-extra-file templates/user/ "
     volumes:
       - type: bind
         source: src/user-web/ft_transcendence

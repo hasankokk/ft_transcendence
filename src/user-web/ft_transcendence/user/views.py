@@ -90,7 +90,7 @@ class RegisterView(View):
 class LoginView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
-            form = forms.UserLoginForm()
+            form = forms.UserLoginForm().render("user/form_snippet.html")
             return render(request, "user/login.html", {'form': form})
         else:
             return HttpResponseRedirect(reverse("game:index"))
