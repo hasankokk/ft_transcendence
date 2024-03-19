@@ -1,22 +1,14 @@
 {% for field in form %}
 
 <div class="form-floating mb-4">
-    {% if field.id_for_label == 'id_otp_device' %}
-    <label class="form-label" for="{{ field.id_for_label }}">
-        {{ field.label }}
-    </label>
-
-    <select class="form-control bg-transparent text-white" id="{{ field.id_for_label }}"
-    name="{{ field.name }}" type="{{ field.field.widget.input_type }}">
     
-    {% for x in field.choices %}
-    <option value="{{ x.name }}" {% if field.value == x.name %} selected {% endif %}>{{ x.name }}</option>
+    <select class="form-select bg-transparent text-white" id="{{ field.id_for_label }}"
+    name="{{ field.name }}" type="{{ field.field.widget.input_type }}"
+    aria-label="Two-factor Authentication Device">
+    
+    {% for value, name in form.fields.otp_device.choices %}
+    <option value="{{ value }}" {% if field.value == "{{ value }}" %} selected {% endif %}>{{ name }}</option>
     {% endfor %}
-
-    <p>
-        Choices:
-        {{ filed.choices }}
-    </p>
 
     </select>
     {% else %}

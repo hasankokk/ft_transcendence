@@ -249,6 +249,7 @@ class TwoFactorAuthenticationView(APIView):
         else:
             user = get_object_or_404(get_user_model(), id=user_id)
             if user.two_fa_auth_type == get_user_model().TwoFAType.EMAIL:
+                pass
                 device = get_object_or_404(EmailDevice, user=user)
                 # device.generate_challenge()
             else:
