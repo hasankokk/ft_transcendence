@@ -34,10 +34,12 @@ function bindProfile() {
 
 function bindAnchor(anchorInstance, func) {
 
+    anchorInstance.removeEventListener('click', loadContentEvent);
+
     anchorInstance.addEventListener('click', e => {
         e.preventDefault();
-        handleTab(e.currentTarget);
         bindFunc = func;
+        loadContent(e.currentTarget);
     });
 }
 
@@ -50,24 +52,45 @@ function updateContentAnchors() {
     const anchors = element.querySelectorAll("a");
 
     for (let i = 0; i < anchors.length; i++) {
-        anchors[i].addEventListener('click', e => {
-            e.preventDefault();
-            handleTab(e.currentTarget);
-        });
+        anchors[i].addEventListener('click', loadContentEvent);
     }
 }
 
-function handleTab(anchorInstance) {
-    const requestUrl = anchorInstance.getAttribute("href");
+function loadContent(anchorInstanceOrPath, pushHistory=true) {
+
+    let requestUrl;
+
+    if (typeof anchorInstanceOrPath === "string") {
+        requestUrl = anchorInstanceOrPath;
+    }
+    else {
+        requestUrl = anchorInstanceOrPath.getAttribute("href");
+    }
 
     fetch(requestUrl)
     .then(response => response.text())
     .then(text => {
         const element = document.getElementById("main-content");
 
+        if (pushHistory) {
+            const state = getState(requestUrl, bindFunc);
+            history.pushState(state, "", "");
+        }
+
         element.innerHTML = text;
-        history.pushState({}, "", requestUrl);
     })
 
     return false;
+}
+
+function loadContentEvent(event) {
+    event.preventDefault();
+    loadContent(event.currentTarget);
+}
+
+function getState(path, binder) {
+    return {
+        'path': path,
+        'binder_name': (binder !== null && typeof binder !== "undefined") ? binder.name : null
+    }
 }

@@ -8,7 +8,7 @@ const funcMap = {
 
 const items = document.getElementsByClassName("nav-item");
 const main_content = document.getElementById("main-content")
-bindFunc = undefined;
+bindFunc = null;
 const observer = new MutationObserver(function(mutations){
     for (const mutation of mutations) {
         console.log(mutation); // DEBUG
@@ -21,9 +21,9 @@ const observer = new MutationObserver(function(mutations){
             else if (element.classList.contains("eoc")) {
                 console.log("eoc found!")
                 updateContentAnchors();
-                if (bindFunc !== undefined) {
+                if (bindFunc !== null) {
                     bindFunc();
-                    bindFunc = undefined;
+                    bindFunc = null;
                 }
             }
             else {
@@ -41,3 +41,18 @@ for(i = 0; i < items.length; i++) {
 
     bindAnchor(anchor, funcMap[anchor.text]);
 }
+
+history.replaceState(getState("/home", funcMap['Home']), "", "")
+
+window.addEventListener("popstate", (e) => {
+    const path = e.state.path;
+    const binder_name = e.state.binder_name;
+    const binder = binder_name !== null ? window[binder_name] : null;
+
+    //console.log(path); // DEBUG
+    //console.log(binder_name); // DEBUG
+    //console.log(binder) // DEBUG
+
+    bindFunc = binder;
+    loadContent(path, false);
+});
