@@ -20,39 +20,20 @@ function submitForm(formInstance) {
     },
     body: JSON.stringify(postData),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data);
-      if (data.success && data.access) {
-        localStorage.setItem("access", data.access);
-        localStorage.setItem("refresh", data.refresh);
-        // Başarılı girişten sonra sayfa içeriğini ve URL'yi yükle
-        loadContent(data.redirect, true);
-        checkUserSession();
-      } else {
-        console.error("Giriş başarısız veya yönlendirme bilgisi eksik.");
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      loadContent(data.redirect);
+    } else {
+      const target = document.getElementById("form_error");
+      for (const error of data.errors) { // fix : data.errors undefined
+        msg = '<div role="alert" class="alert alert-error">';
+        msg += error;
+        msg += "</div>";
+        target.appendChild(document.createTextNode(msg));
       }
-    })
-    .catch((error) => {
-      console.error("Fetch error:", error.message);
-    });
-}
-
-function jwtRefresh() {
-  const refresh_token = localStorage.getItem("refresh_token");
-  fetch("user/refresh-token/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refresh: refresh_token }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      localStorage.setItem("access_token", data.access);
-      console.log("Token yenilendi.");
-    })
-    .catch((error) => console.error("Token yenileme hatası:", error));
+    }
+  });
 }
 
 function fetchOAuthUrl() {
@@ -74,17 +55,4 @@ function fetchOAuthUrl() {
       }, 1000);
     })
     .catch((error) => console.error("Error fetching OAuth URL:", error));
-}
-
-function checkUserSession() {
-  fetch("/user/check-session/", {
-    method: "GET",
-    credentials: "include", // Çerezleri her istekte göndermek için
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data); // Oturum durumunu kontrol et
-      updateUserNavbar(data.isLoggedIn);
-    })
-    .catch((error) => console.error("Error:", error));
 }

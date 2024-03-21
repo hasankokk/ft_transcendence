@@ -13,6 +13,12 @@ function bindLogin() {
 
   const a_register = document.getElementById("registerLink");
   bindAnchor(a_register, bindRegister);
+
+  const a_42login = document.getElementById("42LoginLink");
+  a_42login.addEventListener("click", (e) => {
+    e.preventDefault();
+    fetchOAuthUrl();
+  });
 }
 
 function bindRegister() {
@@ -35,15 +41,10 @@ function bindAnchor(anchorInstance, func) {
 
   anchorInstance.addEventListener("click", (e) => {
     e.preventDefault();
-    bindFunc = func;
-    loadContent(e.currentTarget);
-  });
-  document.body.addEventListener("click", function (e) {
-    // OAuth logo tıklamasını dinle
-    if (e.target.classList.contains("oauth-logo")) {
-      e.preventDefault(); // Tıklama olayının varsayılan işlevini engeller
-      fetchOAuthUrl(); // OAuth URL'sini alıp yeni sekmede aç
+    if ((func !== null) & (typeof func !== "undefined")) {
+      bindFunc = func;
     }
+    loadContent(e.currentTarget);
   });
 }
 
@@ -69,7 +70,7 @@ function loadContent(anchorInstanceOrPath, pushHistory = true) {
     requestUrl = anchorInstanceOrPath.getAttribute("href");
   }
 
-  fetch(requestUrl)
+  fetchWithJWT(requestUrl)
     .then((response) => response.text())
     .then((text) => {
       const element = document.getElementById("main-content");
@@ -110,32 +111,3 @@ function getState(path, binder) {
       binder !== null && typeof binder !== "undefined" ? binder.name : null,
   };
 }
-
-function updateUserNavbar(isLoggedIn) {
-  // Kullanıcı giriş yapmışsa gösterilecek içerik ve buton
-  const userLoggedInContent = document.getElementById("userLoggedIn");
-  const userLoggedInButton = document.getElementById("userLoggedInButton");
-
-  // Kullanıcı çıkış yapmışsa gösterilecek giriş yap butonu
-  const userLoggedOutButton = document.getElementById("userLoggedOutButton");
-
-  if (isLoggedIn) {
-    // Kullanıcı giriş yapmışsa, giriş yapan kullanıcıya özel içeriği ve çıkış yap butonunu göster
-    if (userLoggedInContent) userLoggedInContent.style.display = "block";
-    if (userLoggedInButton) userLoggedInButton.style.display = "block";
-
-    // Giriş yapmamış kullanıcılara gösterilen giriş yap butonunu gizle
-    if (userLoggedOutButton) userLoggedOutButton.style.display = "none";
-  } else {
-    // Kullanıcı giriş yapmamışsa veya çıkış yapmışsa, kullanıcıya özel içeriği ve çıkış yap butonunu gizle
-    if (userLoggedInContent) userLoggedInContent.style.display = "none";
-    if (userLoggedInButton) userLoggedInButton.style.display = "none";
-
-    // Giriş yap butonunu göster
-    if (userLoggedOutButton) userLoggedOutButton.style.display = "block";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  checkUserSession();
-});

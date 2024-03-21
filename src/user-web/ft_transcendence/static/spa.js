@@ -8,7 +8,7 @@ const funcMap = {
 
 const items = document.getElementsByClassName("nav-item");
 const main_content = document.getElementById("main-content");
-bindFunc = null;
+let bindFunc;
 const observer = new MutationObserver(function (mutations) {
   for (const mutation of mutations) {
     console.log(mutation); // DEBUG
@@ -20,7 +20,7 @@ const observer = new MutationObserver(function (mutations) {
       } else if (element.classList.contains("eoc")) {
         console.log("eoc found!");
         updateContentAnchors();
-        if (bindFunc !== null) {
+        if (bindFunc !== null & typeof bindFunc !== "undefined") {
           bindFunc();
           bindFunc = null;
         }
@@ -49,4 +49,8 @@ window.addEventListener("load", (e) => {
 
 window.addEventListener("popstate", (e) => {
   loadHistoryEvent(e);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  checkUserSession();
 });

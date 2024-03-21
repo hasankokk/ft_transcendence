@@ -29,29 +29,28 @@
               <a href="/chat/" class="nav-link">Chat</a>
             </li>
             <!-- Dinamik olarak giriş yapmış kullanıcılara gösterilecek öğeler -->
-            <div id="userLoggedIn" style="display: none">
-              <li class="nav-item">
-                <a href="#" class="nav-link disabled">Ranking</a>
-              </li>
-              <li class="nav-item">
-                <a href="#" class="nav-link disabled">Profile</a>
-              </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link disabled" id="navRankingButton" hidden>Ranking</a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link disabled" id="navProfileButton" hidden>Profile</a>
+            </li>
             </div>
           </ul>
           <ul class="navbar-nav ms-lg-5 ps-lg-5">
             <!-- Dinamik olarak giriş yapmış kullanıcılara gösterilecek çıkış butonu -->
-            <li class="nav-item" id="userLoggedInButton" style="display: none">
+            <li class="nav-item">
               <a
                 href="{% url 'user:logout' %}"
-                class="nav-link btn btn-dark btn-logout shadow-sm"
+                class="nav-link btn btn-dark btn-logout shadow-sm" id="navLogoutButton" hidden
                 >Logout</a
               >
             </li>
             <!-- Dinamik olarak giriş yapmamış kullanıcılara gösterilecek giriş yap butonu -->
-            <li class="nav-item" id="userLoggedOutButton">
+            <li class="nav-item">
               <a
                 href="{% url 'user:login' %}"
-                class="nav-link btn btn-dark shadow-sm"
+                class="nav-link btn btn-dark shadow-sm" id="navLoginButton"
                 >Login</a
               >
             </li>

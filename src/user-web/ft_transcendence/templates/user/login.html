@@ -5,7 +5,8 @@
         <div class="card-body">
           <form action="{% url 'user:login' %}" method="POST" id="login-form">
             <h2 class="mb-5">Login</h2>
-            {% csrf_token %} {{ form }}
+            {% csrf_token %}
+			{{ form }}
             <button
               type="submit"
               class="btn btn-full btn-dark mb-4"
@@ -46,8 +47,10 @@
               alt="OAuth Login"
               class="oauth-logo"
               style="cursor: pointer"
+              id="42LoginLink"
             />
           </div>
+          <div id="form_error"></div>
         </div>
       </div>
     </div>

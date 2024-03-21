@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django_otp.forms import OTPTokenForm
 from django_otp.plugins.otp_email.models import EmailDevice
 
@@ -93,7 +94,7 @@ class LoginView(APIView):
             form = forms.UserLoginForm().render("user/form_snippet.html")
             return render(request, "user/login.html", {'form': form})
         else:
-            return HttpResponseRedirect(reverse("game:index"))
+            return HttpResponseRedirect(reverse("home"))
 
     def post(self, request):
         data = JSONParser().parse(request)
@@ -109,12 +110,18 @@ class LoginView(APIView):
                     refresh = RefreshToken.for_user(user)
                     # TODO: set cookies
                     # messages.success(request, _("Login successful"))
-                    response = {'success': True,
-                                'redirect': reverse('index'),
-                                'message': _("Login successful"),
-                                'refresh': str(refresh),
-                                'access': str(refresh.access_token)}
-                    return Response(response)
+                    response_data = {'success': True,
+                                     'redirect': reverse('home'),
+                                     'message': _("login successful"),
+                                     #'refresh': str(refresh),
+                                     #'access': str(refresh.access_token)
+                                     }
+                    response = Response(response_data)
+                    response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
+                    response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
+                    print(refresh)
+                    print(refresh.access_token)
+                    return response
                 else:
                     request.session["attempting_user"] = user.id
                     response = {'success': True,
@@ -134,12 +141,47 @@ class LoginView(APIView):
 
 @api_view(['GET'])
 def logoutView(request):
-    if request.user.is_authenticated:
-        # TODO: Delete tokens from cookies
-        return Response({'success': True, 'message': _("Logout successful")})
-    else:
-        messages.warning(request, _("User is already logged out"))
-        return Response({'success': False, 'errors': [_("User is already logged out")]}, status=status.HTTP_400_BAD_REQUEST)
+    response = HttpResponseRedirect(reverse('home'))
+    response.delete_cookie('refresh_token', samesite='Strict')
+    response.delete_cookie('access_token', samesite='Strict')
+    return response
+
+class refreshTokenView(APIView):
+    def post(self, request):
+        data = JSONParser().parse(request)
+        serializer = TokenRefreshSerializer(data=data)
+
+        if serializer.is_valid():
+            access = serializer.validated_data['access']
+            response = Response({'success': True, 'message': _("Refreshed access token")})
+            response.set_cookie('access_token', access, samesite='Strict')
+            return response
+        else:
+            response = Response({'success': False, 'errors': [_("Invalid refresh token")]},
+                                status=status.HTTP_401_UNAUTHORIZED)
+            response.delete_cookie('refresh_token', samesite='Strict')
+            response.delete_cookie('access_token', samesite='Strict')
+            return response
+    def get(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+        if refresh_token is None:
+            return Response({'success': False,
+                             'errors': [_("Refresh token not found in cookies")]},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
+
+        if serializer.is_valid():
+            access = serializer.validated_data['access']
+            response = Response({'success': True, 'message': _("Refreshed access token")})
+            response.set_cookie('access_token', access, samesite='Strict')
+            return response
+        else:
+            response = Response({'success': False, 'errors': [_("Invalid refresh token")]},
+                                status=status.HTTP_401_UNAUTHORIZED)
+            response.delete_cookie('refresh_token', samesite='Strict')
+            response.delete_cookie('access_token', samesite='Strict')
+            return response
 
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
@@ -173,12 +215,13 @@ def oauth_callback(request):
 
             refresh = RefreshToken.for_user(user)
             # login(request, user)
-            response = {'success': True,
-                        'redirect': reverse('index'),
-                        'message': _("login successful"),
-                        'refresh': str(refresh),
-                        'access': str(refresh.access_token)}
-            return Response(response)
+            response_data = {'success': True,
+                             'redirect': reverse('home'),
+                             'message': _("login successful"),
+                             #'refresh': str(refresh),
+                             #'access': str(refresh.access_token)
+                             }
+            return Response(response_data)
         else:
             response = {'success': False, 'message': _("Incorrect access token")}
             return Response(response, status=status.HTTP_401_UNAUTHORIZED)
