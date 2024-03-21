@@ -10,6 +10,8 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils import timezone
+
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
@@ -43,7 +45,7 @@ class RegisterView(View):
         return render(request, "user/register.html", context)
 
     def post(self, request):
-        
+
         data = request.POST
         if len(request.POST) == 0:
             data = json.loads(request.body)
@@ -95,51 +97,65 @@ class LoginView(APIView):
         else:
             return HttpResponseRedirect(reverse("game:index"))
 
-    def post(self, request):
-        data = JSONParser().parse(request)
-        serializer = serializers.UserLoginSerializer(data=data)
+    def post(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
 
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            user = authenticate(request, username=username, password=password)
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            user.last_login = timezone.now() #login kontrol
+            user.save(update_fields=['last_login'])
 
-            if user is not None:
-                if user.two_fa_auth_type == get_user_model().TwoFAType.NONE:
-                    refresh = RefreshToken.for_user(user)
-                    # TODO: set cookies
-                    # messages.success(request, _("Login successful"))
-                    response = {'success': True,
-                                'redirect': reverse('index'),
-                                'message': _("Login successful"),
-                                'refresh': str(refresh),
-                                'access': str(refresh.access_token)}
-                    return Response(response)
-                else:
-                    request.session["attempting_user"] = user.id
-                    response = {'success': True,
-                                'redirect': reverse('user:two-factor'),
-                                'message': _("Login successful")}
-                    return Response(response)
-            else:
-                # messages.error(request, _("Incorrect username or password"))
-                # return HttpResponseRedirect(reverse("user:login"), status=401)
-                response = {'success': False, 'errors': [_("Incorrect username or password")]}
-                return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+            response = Response({
+                'success': True,
+                'redirect': reverse('home'),  # Yönlendirme URL'i
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'message': 'Login successful',
+            })
+            print(refresh.access_token)
+            print(refresh)
+            # Access ve Refresh token'ları HTTPOnly çerez olarak ayarla
+            response.set_cookie(
+                key='refresh_token',
+                value=str(refresh),
+                httponly=True,
+                path='/',
+                secure=False,  # HTTPS üzerinden gönderim için
+                samesite='Strict'  # CSRF koruması için
+            )
+            response.set_cookie(
+                key='access_token',
+                value=str(refresh.access_token),
+                httponly=True,
+                path='/',
+                secure=False,  # HTTPS üzerinden gönderim için
+                samesite='Strict'  # CSRF koruması için
+            )
+
+            return response
         else:
-            # for error in serializer.errors:
-            #    messages.error(request, "Invalid Serializer:" + error)
-            response = {'success': False, 'errors': serializer.errors}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
 def logoutView(request):
+    response_data = {}
     if request.user.is_authenticated:
-        # TODO: Delete tokens from cookies
-        return Response({'success': True, 'message': _("Logout successful")})
+        logout(request)  # Kullanıcı oturumunu kapat
+        response_data = {
+            'success': True,
+            'message': 'Logout successful',
+            'redirect': reverse('index')  # Anasayfaya yönlendirme URL'i
+        }
     else:
-        messages.warning(request, _("User is already logged out"))
-        return Response({'success': False, 'errors': [_("User is already logged out")]})
+        response_data = {
+            'success': False,
+            'message': 'User is already logged out',
+            'redirect': reverse('index')  # Yine anasayfaya yönlendirme URL'i
+        }
+    return JsonResponse(response_data)
+
 
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
@@ -245,7 +261,7 @@ class TwoFactorAuthenticationView(APIView):
         user_id = request.session.get("attempting_user", None)
         if user_id is None:
             return render(request, "error.html", {'error': "Unauthorized Request"}, status=401)
-            
+
         else:
             user = get_object_or_404(get_user_model(), id=user_id)
             if user.two_fa_auth_type == get_user_model().TwoFAType.EMAIL:
@@ -254,7 +270,7 @@ class TwoFactorAuthenticationView(APIView):
                 # device.generate_challenge()
             else:
                 return HttpResponse("No two-factor authentication device registered for the user #" + str(user_id), status=401)
-            
+
             form = OTPTokenForm(user).render("user/2fa_snippet.html")
             context = {'form': form}
             return render(request, "user/two-factor.html", context)

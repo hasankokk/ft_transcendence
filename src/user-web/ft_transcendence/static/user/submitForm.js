@@ -1,48 +1,90 @@
 function submitForm(formInstance) {
+  const form = formInstance;
+  const formData = new FormData(form);
 
-    const form = formInstance
-    const formData = new FormData(form);
-	responseUrl = ''
+  console.log("SubmitForm Called"); // DEBUG
 
-    console.log("SubmitForm Called") // DEBUG
+  let postData = {};
+  formData.forEach((value, key) => {
+    postData[key] = value;
+  });
 
-    postData = {}
-    formData.forEach( (value, key) => {
-        postData[key] = value;
-    });
+  const requestUrl = form.getAttribute("action");
 
-    const requestUrl = form.getAttribute("action")
+  console.log("Calling fetch..."); // DEBUG
 
-    const headers = new Headers({
-        'Content-Type': 'application/json'
-    });
-
-    console.log("Calling fetch...") // DEBUG
-
-    fetch(requestUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(postData),
+  fetch(requestUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(postData),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      if (data.success && data.access) {
+        localStorage.setItem("access", data.access);
+        localStorage.setItem("refresh", data.refresh);
+        // Başarılı girişten sonra sayfa içeriğini ve URL'yi yükle
+        loadContent(data.redirect, true);
+        checkUserSession();
+      } else {
+        console.error("Giriş başarısız veya yönlendirme bilgisi eksik.");
+      }
     })
-    .then(response => {
-        if (response.status === 401) {
-            throw new Error("Incorrect username or password"); // DEBUG
-        }
-        else {
-            return response.json();
-            return false
-        }
-    })
-    .then(data => {
-        console.log(data);
-        return false;
-    }) // TODO: Set cookies instead and redirect
-    .catch(error => {
-        console.error(error.message);
-        return false;
+    .catch((error) => {
+      console.error("Fetch error:", error.message);
     });
+}
 
-    console.log("fetch promise chain complete") // DEBUG
+function jwtRefresh() {
+  const refresh_token = localStorage.getItem("refresh_token");
+  fetch("user/refresh-token/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh: refresh_token }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      localStorage.setItem("access_token", data.access);
+      console.log("Token yenilendi.");
+    })
+    .catch((error) => console.error("Token yenileme hatası:", error));
+}
 
-    return true;
+function fetchOAuthUrl() {
+  fetch("/user/get-oauth-url/")
+    .then((response) => response.json())
+    .then((data) => {
+      const oauthWindow = window.open(
+        data.oauth_url,
+        "oauthWindow",
+        "width=600,height=700"
+      );
+
+      const checkWindowClosed = setInterval(() => {
+        if (oauthWindow.closed) {
+          clearInterval(checkWindowClosed);
+          // OAuth penceresi kapandıktan sonra oturum durumunu kontrol et ve UI'ı güncelle
+          checkUserSession();
+        }
+      }, 1000);
+    })
+    .catch((error) => console.error("Error fetching OAuth URL:", error));
+}
+
+function checkUserSession() {
+  fetch("/user/check-session/", {
+    method: "GET",
+    credentials: "include", // Çerezleri her istekte göndermek için
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data); // Oturum durumunu kontrol et
+      updateUserNavbar(data.isLoggedIn);
+    })
+    .catch((error) => console.error("Error:", error));
 }
