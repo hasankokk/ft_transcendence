@@ -212,13 +212,15 @@ def oauth_callback(request):
                 user.save()
 
             refresh = RefreshToken.for_user(user)
-            # login(request, user)
             response_data = {'success': True,
                              'redirect': reverse('home'),
                              'message': _("login successful"),
                              #'refresh': str(refresh),
                              #'access': str(refresh.access_token)
                              }
+            response = Response(response_data)
+            response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
+            response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
             return Response(response_data)
         else:
             response = {'success': False, 'message': _("Incorrect access token")}
