@@ -183,7 +183,7 @@ class refreshTokenView(APIView):
 
 def get_oauth_url(request):
     oauth_url = f"{AUTHORIZATION_URL}?client_id={settings.OAUTH_CLIENT_ID}&redirect_uri={settings.OAUTH_REDIRECT_URI}&response_type=code"
-    return JsonResponse({'oauth_url': oauth_url})
+    return JsonResponse({'oauth_url': oauth_url, 'redirect': reverse('home')})
 
 @api_view(['GET', 'POST'])
 def oauth_callback(request):
@@ -221,7 +221,7 @@ def oauth_callback(request):
             response = Response(response_data)
             response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
             response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
-            return Response(response_data)
+            return response
         else:
             response = {'success': False, 'message': _("Incorrect access token")}
             return Response(response, status=status.HTTP_401_UNAUTHORIZED)

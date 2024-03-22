@@ -37,6 +37,7 @@ function submitForm(formInstance) {
 }
 
 function fetchOAuthUrl() {
+  // OAuth URL'sini al ve yeni bir pencere aç
   fetch("/user/get-oauth-url/")
     .then((response) => response.json())
     .then((data) => {
@@ -46,11 +47,11 @@ function fetchOAuthUrl() {
         "width=600,height=700"
       );
 
+      // OAuth penceresi kapandığında kullanıcı oturumunu kontrol et
       const checkWindowClosed = setInterval(() => {
         if (oauthWindow.closed) {
           clearInterval(checkWindowClosed);
-          // OAuth penceresi kapandıktan sonra oturum durumunu kontrol et ve UI'ı güncelle
-          checkUserSession();
+          loadContent(data.redirect);
         }
       }, 1000);
     })
