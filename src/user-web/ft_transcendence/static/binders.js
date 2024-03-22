@@ -30,7 +30,12 @@ function bindRegister() {
 
 function bindHome() {}
 
-function bindGame() {}
+function bindLogout() {}
+
+function bindGame() {
+  console.log("called bingGame");
+  window.pong_start()
+}
 
 function bindRanking() {}
 

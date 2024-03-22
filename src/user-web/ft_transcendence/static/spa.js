@@ -1,6 +1,7 @@
 const funcMap = {
   Home: bindHome,
   Login: bindLogin,
+  Logout: bindLogout,
   Games: bindGame,
   Ranking: bindRanking,
   Profile: bindProfile,

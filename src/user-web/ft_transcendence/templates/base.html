@@ -14,6 +14,15 @@
       content="{% block keywords %}game, pingpong{% endblock %}"
     />
     {% load static %}
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "{% static 'game/three.module.js' %}"
+        }
+      }
+    </script>
+
     <link
       rel="icon"
       type="image/x-icon"
@@ -46,12 +55,15 @@
     <link rel="stylesheet" href="{% static 'nav.css' %}" />
     <link rel="stylesheet" href="{% static 'error.css' %}" />
 
+    <script defer type="module" src="{% static 'game/player_vs_player.js' %}"></script>
+
     <script defer src="{% static 'cookiesHandler.js' %}"></script>
     <script defer src="{% static 'user/sessionNavigator.js' %}"></script>
     <script defer src="{% static 'fetchWithJWT.js' %}"></script>
     <script defer src="{% static 'binders.js' %}"></script>
     <script defer src="{% static 'spa.js' %}"></script>
     <script defer src="{% static 'user/submitForm.js' %}"></script>
+    
   </head>
   <body>
     <div id="content">

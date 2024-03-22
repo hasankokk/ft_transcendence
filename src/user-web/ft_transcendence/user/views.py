@@ -119,8 +119,6 @@ class LoginView(APIView):
                     response = Response(response_data)
                     response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
                     response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
-                    print(refresh)
-                    print(refresh.access_token)
                     return response
                 else:
                     request.session["attempting_user"] = user.id
