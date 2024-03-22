@@ -26,5 +26,6 @@ urlpatterns = [
     path("home/", views.home, name="home"),
     path("user/", include("user.urls")),
     path("game/", include("game.urls")),
+    path("chat/", include("chat.urls")),
     path("verify-token/", TokenVerifyView.as_view(), name="token_verify"),
 ]

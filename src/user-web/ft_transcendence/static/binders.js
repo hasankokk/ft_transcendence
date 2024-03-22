@@ -41,6 +41,10 @@ function bindRanking() {}
 
 function bindProfile() {}
 
+function bindChat() {
+  chatFunction();
+}
+
 function bindAnchor(anchorInstance, func) {
   anchorInstance.removeEventListener("click", loadContentEvent);
 

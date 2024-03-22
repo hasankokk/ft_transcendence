@@ -19,6 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path("chat/admin/", admin.site.urls, name="chat-admin"),
-    path("chat/", include("chatapp.urls"), name="chat"),
+    path("chat-api/admin/", admin.site.urls, name="chat-admin"),
+    path("chat-api/", include("chatapp.urls"), name="chat-api"),
 ]
