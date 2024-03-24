@@ -16,6 +16,11 @@ urlpatterns = [
     path("refresh-token/", views.refreshTokenView.as_view(), name="token_refresh"),
     path("friend-request/", views.FriendRequestView.as_view(), name="friend-request"),
     path("two-factor/", views.TwoFactorAuthenticationView.as_view(), name="two-factor"),
+
+    path("change-password/", views.paddwordChangeView, name="change-password"),
+    path("delete-account/", views.deleteUserView, name="delete-account"),
+    path("get_image/<int:user_id>/", views.UserImageView.as_view(), name="get-user-image"),
+    path("get_image/", views.UserImageView.as_view(), name="get-user-image-2"),
     # =================
     #  Views for debug
     # =================

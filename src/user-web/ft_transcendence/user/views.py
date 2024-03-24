@@ -1,4 +1,4 @@
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse, Http404, FileResponse
 
 from django.db.models import Q
 from django.contrib.auth import logout, authenticate, login, get_user_model
@@ -303,6 +303,60 @@ class TwoFactorAuthenticationView(APIView):
             return render(request, "user/two-factor.html", context)
     def post(self, request):
         return Response({'message': "POST request is NOT implemented"})
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def paddwordChangeView(request):
+    data = JSONParser().parse(request)
+    response = {'success': False, 'errors': []}
+    serializer = serializers.UserPasswordChangeSerializer(data=data)
+
+    if serializer.is_valid():
+        if request.user.check_password(serializer.validated_data['old_password']):
+            p1 = serializer.validated_data['new_password1']
+            p2 = serializer.validated_data['new_password2']
+
+            if p1 != p2:
+                response['errors'].append(_("Passwords do not match"))
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            request.user.set_password(p1)
+            request.user.save()
+            response['success'] = True
+            response['message'] = _("Password change is successful")
+            return Response(response)
+        else:
+            response['errors'].append(_("Invalid password"))
+            return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+
+    else:
+        response['errors'].append(_("Invalid data"))
+        return Response(response, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def deleteUserView(request):
+    response = HttpResponseRedirect(reverse('home'))
+    response.delete_cookie('refresh_token', samesite='Strict')
+    response.delete_cookie('access_token', samesite='Strict')
+    request.user.delete()
+    return response
+
+class UserImageView(APIView):
+    def get(self, request, user_id=None):
+        
+        default_path = settings.MEDIA_URL[1:] + "image/default/user.png"
+
+        if request.user.is_authenticated:
+            if user_id is None:
+                return FileResponse(open(request.user.image, 'rb'))
+            else:
+                try:
+                    target_user = get_user_model().get(pk=user_id)
+                    return FileResponse(open(target_user.image), 'rb')
+                except get_user_model().DoesNotExist:
+                    return FileResponse(open(default_path, 'rb'))
+        else:
+            return FileResponse(open(default_path, 'rb'))
 
 # =================
 #  Views for debug
