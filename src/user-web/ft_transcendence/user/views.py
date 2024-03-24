@@ -306,7 +306,7 @@ class TwoFactorAuthenticationView(APIView):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def paddwordChangeView(request):
+def passwordChangeView(request):
     data = JSONParser().parse(request)
     response = {'success': False, 'errors': []}
     serializer = serializers.UserPasswordChangeSerializer(data=data)
