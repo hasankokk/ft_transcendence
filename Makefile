@@ -7,6 +7,9 @@ all: start
 start: $(STATIC_FILES)
 	docker-compose up
 
+build: $(STATIC_FILES)
+	docker-compose up --build
+
 $(STATIC_FILES):
 	mkdir -p $@
 
@@ -16,6 +19,7 @@ stop:
 refresh:
 	docker image rm -f $(PARENT_DIR)-user-web # Add more for new web microservices
 	docker image rm -f $(PARENT_DIR)-chat-web
+	docker image rm -f $(PARENT_DIR)-game-web
 	docker system prune
 	docker volume rm -f $(PARENT_DIR)_user-postgres # Add more for new web microservices
 	rm -f src/chat-web/chat/db.sqlite3
@@ -33,4 +37,4 @@ migrations:
 	$(foreach dir, $(WEB_PATHS), find $(dir) -path "*/migrations/*.pyc" ;)
 	$(foreach dir, $(WEB_PATHS), find $(dir)/staticfiles -maxdepth 0 ;)
 
-.PHONY: all start stop refresh up down re
+.PHONY: all start build stop refresh up down re

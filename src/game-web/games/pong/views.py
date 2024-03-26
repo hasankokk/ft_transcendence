@@ -31,6 +31,14 @@ def movePlayer(request):
 @api_view(['GET'])
 def testAuth(request):
     if request.user.is_authenticated:
-        return Response({'message': 'you are authorized'})
+        return Response({'message': 'you are authorized',
+                         'user_type': str(type(request.user)),
+                         'user_attr': request.user.__dict__.keys(),
+                         'user_pk': request.user.pk,
+                         'user_username': request.user.username})
     else:
-        return Response({'message': 'you are NOT authorized'})
+        return Response({'message': 'you are NOT authorized',
+                         'user_type': str(type(request.user)),
+                         'user_attr': request.user.__dict__.keys(),
+                         'user_pk': request.user.pk,
+                         'user_username': request.user.username})

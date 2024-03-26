@@ -57,6 +57,10 @@ function bindChat() {
   chatFunction();
 }
 
+function bindChatRoom() {
+  chatRoom();
+}
+
 function bindAnchor(anchorInstance, func) {
   anchorInstance.removeEventListener("click", loadContentEvent);
 

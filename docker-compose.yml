@@ -92,7 +92,7 @@ services:
              python manage.py migrate &&
              python manage.py collectstatic --no-input &&
              python manage.py test pong &&
-             gunicorn -b \'0.0.0.0:8002\' --reload games.wsgi"
+             daphne -b 0.0.0.0 -p 8002 games.asgi:application"
     volumes:
       - type: bind
         source: src/game-web/games
