@@ -1,7 +1,6 @@
 const funcMap = {
   Home: bindHome,
   Login: bindLogin,
-  Logout: bindLogout,
   Games: bindGame,
   Chat: bindChat,
   Ranking: bindRanking,
@@ -39,7 +38,11 @@ observer.observe(main_content, { childList: true });
 for (i = 0; i < items.length; i++) {
   const anchor = items[i].querySelector("a");
 
-  bindAnchor(anchor, funcMap[anchor.text]);
+  if (anchor.text !== "Logout") {
+    bindAnchor(anchor, funcMap[anchor.text]);
+  } else {
+    bindLogout(anchor);
+  }
 }
 
 window.addEventListener("load", (e) => {

@@ -28,9 +28,21 @@ function bindRegister() {
   bindAnchor(a_login, bindLogin);
 }
 
-function bindHome() {}
+function bindLogout(anchorInstance) {
+  // Logout is supposed to work in the exactly opposite way
+  // The content should be requested after logout is complete
 
-function bindLogout() {}
+  anchorInstance.addEventListener("click", (e) => {
+    e.preventDefault();
+    fetch(anchorInstance.href)
+      .then((response) => response.json())
+      .then((data) => {
+        loadContent(data.redirect);
+      });
+  });
+}
+
+function bindHome() {}
 
 function bindGame() {
   console.log("called bingGame");
@@ -50,9 +62,7 @@ function bindAnchor(anchorInstance, func) {
 
   anchorInstance.addEventListener("click", (e) => {
     e.preventDefault();
-    if ((func !== null) & (typeof func !== "undefined")) {
-      bindFunc = func;
-    }
+    bindFunc = func;
     loadContent(e.currentTarget);
   });
 }

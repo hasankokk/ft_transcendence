@@ -1,9 +1,3 @@
-html,
-body {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .custom-logout-button1 {
   background-color: transparent; /* Arka planı transparan yap */
   color: #ffffff; /* Bootstrap 'btn-danger' rengi */

@@ -108,13 +108,9 @@ class LoginView(APIView):
             if user is not None:
                 if user.two_fa_auth_type == get_user_model().TwoFAType.NONE:
                     refresh = RefreshToken.for_user(user)
-                    # TODO: set cookies
-                    # messages.success(request, _("Login successful"))
                     response_data = {'success': True,
                                      'redirect': reverse('home'),
                                      'message': _("login successful"),
-                                     #'refresh': str(refresh),
-                                     #'access': str(refresh.access_token)
                                      }
                     response = Response(response_data)
                     response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
@@ -127,8 +123,6 @@ class LoginView(APIView):
                                 'message': _("Login successful")}
                     return Response(response)
             else:
-                # messages.error(request, _("Incorrect username or password"))
-                # return HttpResponseRedirect(reverse("user:login"), status=401)
                 response = {'success': False, 'errors': [_("Incorrect username or password")]}
                 return Response(response, status=status.HTTP_401_UNAUTHORIZED)
         else:
@@ -139,7 +133,10 @@ class LoginView(APIView):
 
 @api_view(['GET'])
 def logoutView(request):
-    response = HttpResponseRedirect(reverse('home'))
+    if request.session.get("attempting_user", None) is not None:
+        request.session.pop("attempting_user")
+    response = Response({'success': True, 'redirect': reverse('home'),
+                         'message': _("User is logged out")})
     response.delete_cookie('refresh_token', samesite='Strict')
     response.delete_cookie('access_token', samesite='Strict')
     return response
@@ -155,6 +152,8 @@ class refreshTokenView(APIView):
             response.set_cookie('access_token', access, samesite='Strict')
             return response
         else:
+            if request.session.get("attempting_user", None) is not None:
+                request.session.pop("attempting_user")
             response = Response({'success': False, 'errors': [_("Invalid refresh token")]},
                                 status=status.HTTP_401_UNAUTHORIZED)
             response.delete_cookie('refresh_token', samesite='Strict')
