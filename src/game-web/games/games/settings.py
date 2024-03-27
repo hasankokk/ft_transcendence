@@ -76,6 +76,16 @@ TEMPLATES = [
 WSGI_APPLICATION = "games.wsgi.application"
 ASGI_APLLICATION = "games.asgi.application"
 
+# Channel Layers (DJANGO CHANNELS)
+CHANNEL_LAYERS = {
+    "default" : {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("game-redis", 6379)],
+        },
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

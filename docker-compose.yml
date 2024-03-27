@@ -85,6 +85,12 @@ services:
     depends_on:
       - chat-web
 
+  game-redis:
+    image: redis:7
+    restart: always
+    expose:
+      - "6379"
+
   game-web:
     build: src/game-web
     command: >
@@ -99,6 +105,8 @@ services:
         target: /code
     expose:
       - "8002"
+    depends_on:
+      - game-redis
 
   game-nginx:
     image: nginx
