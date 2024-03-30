@@ -1,46 +1,118 @@
-from enum import Enum
+from enum import IntEnum
 from time import time
+
+import random
+import asyncio
 
 from pong.Vector import Vector2D
 
 class Player:
-    def __init__(self, nickname: str | None = None,
-                 position=(1.0,0.0), velocity=5.0):
+    def __init__(self, board_size : Vector2D, paddle_size : Vector2D,
+                 nickname: str | None = None, velocity=5.0):
         self.nickname = nickname
+        
         self.is_ready = False
-        self.def_position = Vector2D(position[0], position[1])
+        self.is_playing = False
+        self.times_played = 0
+
+        self.def_position = abs(Vector2D(board_size.x / 2 - paddle_size.x, 0))
         self.position = self.def_position
         self.velocity = velocity
 
-class Ball:
-    def __init__(self, width=5.0,
-                 position=(0.0,0.0), velocity=(5.0,5.0)):
-        self.def_position = Vector2D(position[0], position[1])
-        self.position = self.def_position
-        self.def_velocity = Vector2D(velocity[0], velocity[1])
-        self.velocity = self.def_velocity
-        self.width = width
+        self.score = 0
+        self.total_score = 0
+        self.wins = 0
 
-class GameState(Enum):
+    def reset_game_variables(self):
+        self.position = self.def_position
+        self.is_ready = False
+
+    def toggle_position_x(self):
+        self.position.x = -self.position.x
+
+class Ball:
+    def __init__(self, board_size: Vector2D, paddle_size: Vector2D,
+                 radius, velocity: tuple, position=(0.0,0.0)):
+
+        self.def_position = Vector2D(position[0], position[1])
+        self.def_velocity = abs(Vector2D(velocity[0], velocity[1]))
+        self.position = self.def_position
+        self.velocity = self.def_velocity
+
+        self.radius = abs(radius)
+
+        self.bounce_margin = Vector2D(board_size.x / 2 - self.radius - paddle_size[0],
+                                      board_size.y / 2 - self.radius)
+
+        self.score_margin = board_size.x / 2 - self.radius - paddle_size[0] / 2
+
+    def reset_game_variables(self):
+        """Reset variables to default"""
+        self.position = self.def_position
+        self.velocity = self.def_velocity
+
+    def reset(self):
+        """Reset ball based on last score"""
+        if self.position.x > 0:
+            self.reset_game_variables()
+            self.velocity.x = abs(self.velocity.x)
+        else:
+            self.reset_game_variables()
+            self.velocity.x = -abs(self.velocity.x)
+
+    def bounce_vertical(self) -> bool:
+        if self.bounce_margin.y < abs(self.position.y):
+            self.velocity.y = -self.velocity.y
+
+        return True
+
+    def bounce_horizontal(self, paddle_range: tuple[float, float]) -> bool:
+        """Returns False if ball position has passed the paddle"""
+        
+        pos_x = abs(self.position.x)
+        
+        if self.bounce_margin.x < pos_x:
+
+            if pos_x < self.score_margin:
+                if paddle_range[0] < self.position.y < paddle_range[1]:
+                    self.velocity.x = -self.velocity.x
+                return True
+            else:
+                return False
+        
+        return True
+
+class GameState(IntEnum):
     PENDING = 1
     ACTIVE = 2
-    FINISHED = 3
+    LOOP_ENDED = 3
+    FINISHED = 4
 
-class GameType(Enum):
+class GameType(IntEnum):
     ONEVONE = 1
     TOURNAMENT = 2
 
 class Game:
     def __init__(self,
-                 board_size=(800,600), type=GameType.ONEVONE):
-        self.players = {}
-        self.channels = {}
-        self.ball = None
+                 board_size=(800,600), paddle_size=(2,5),
+                 ball_radius=5.0, ball_velocity=(35.0, 15.0),
+                 time_max = 15, type=GameType.ONEVONE):
+
+        self.players : dict[str, Player] = {} # All players
+        self.current_players = tuple() # 1V1 players when game is active
+        self.channels = {} # Connected players
         self.status = GameState.PENDING
-        self.width = board_size[0]
-        self.height = board_size[1]
         self.type = type
-        self.time = time()
+        self.time_started = time() # Dummy default
+        self.time_elapsed = time() # Dummy default
+        self.time_max = time_max
+        self.task = set()
+
+        self.board_size = abs(Vector2D(board_size[0], board_size[1]))
+        self.paddle_size = abs(Vector2D(paddle_size[0], paddle_size[1]))
+
+        self.ball = Ball(self.board_size, self.paddle_size,
+                         radius=ball_radius, velocity=ball_velocity)
 
         if self.type == GameType.TOURNAMENT:
             self.max_players = 4
@@ -55,7 +127,8 @@ class Game:
         elif len(self.players) >= self.max_players:
             return False
         elif GamePool.find_user(username) is None:
-            player = Player(**kwargs)
+            player = Player(self.board_size, self.paddle_size,
+                            **kwargs)
             self.players[username] = player
             self.channels[username] = channel_name
             return True
@@ -66,10 +139,37 @@ class Game:
         return self.players.pop(username, None)
 
     def remove_channel(self, username : str):
+        self.players[username].is_ready = False
         self.channels.pop(username, None)
 
     def is_active(self):
         return self.status == GameState.ACTIVE
+
+    def is_all_ready(self):
+        if len(self.players) == self.max_players:
+            for user in self.players:
+                if not self.players[user].is_ready:
+                    return False
+            return True
+        return False
+
+    def full_reset(self):
+        self.ball.reset_game_variables()
+        for user in self.players:
+            self.players[user].reset_game_variables()
+            self.players[user].total_score = 0
+            self.players[user].wins = 0
+
+    async def toggle_ready(self, username):
+        if self.status != GameState.PENDING:
+            return
+
+        self.players[username].is_ready = not self.players[username].is_ready
+
+        if self.is_all_ready():
+            task = asyncio.create_task(self.startGame())
+            self.task.add(task)
+            task.add_done_callback(self.task.discard)
 
     def __str__(self):
         return str([username for username in self.players])
@@ -82,6 +182,94 @@ class Game:
 
     def __len__(self):
         return len(self.channels)
+
+    def pair_select(self, loop_count) -> None | tuple[str, str]:
+        # match players with lowest number of times_played and wins
+        pass
+
+    def paddle_range(self, players) -> tuple[float, float]:
+        if self.ball.position.x > 0:
+            min = self.players[players[0]].position.y - self.paddle_size.y / 2
+            max = self.players[players[0]].position.y + self.paddle_size.y / 2
+        else:
+            min = self.players[players[1]].position.y - self.paddle_size.y / 2
+            max = self.players[players[1]].position.y + self.paddle_size.y / 2
+
+        return (min, max)
+    
+    def set_score(self, players):
+        if self.ball.position.x > 0:
+            self.players[players[0]].score += 1
+        else:
+            self.players[players[1]].score += 1
+
+        self.ball.reset()
+
+    async def startGame(self):
+        pl_list = list(self.players)
+        random.shuffle(pl_list)
+        self.full_reset()
+
+        if self.type == GameType.ONEVONE:
+            await self.startMatch((pl_list[0], pl_list[1]))
+        else:
+            loop_count = 0
+            while not all([self.players[user].times_played < 2 for user in pl_list]):
+                pair = self.pair_select(loop_count)
+                if pair is not None:
+                    await self.startMatch(pair)
+                else:
+                    raise PairNotFound()
+        
+        self.status = GameState.FINISHED
+        await asyncio.sleep(10)
+        # Send game data to database
+        self.status = GameState.PENDING
+
+        print("GAME FINISHED") # DEBUG
+
+    async def startMatch(self, players : tuple[str, str]):
+        self.status = GameState.ACTIVE
+        self.current_players = players
+        for p in players:
+            self.players[p].reset_game_variables()
+            self.players[p].is_playing = True
+        self.players[players[0]].toggle_position_x()
+        self.time_started = time()
+        self.time_elapsed = self.time_started
+
+        while (self.status != GameState.LOOP_ENDED):
+            await self.cycle(players)
+            if self.time_elapsed - self.time_started > self.time_max:
+                self.status = GameState.LOOP_ENDED
+            await asyncio.sleep(25e-3) # 25ms
+
+        for p in players:
+            self.players[p].times_played += 1
+            self.players[p].is_playing = False
+            self.players[p].total_score += self.players[p].score
+
+        if self.players[players[0]].score > self.players[players[1]].score:
+            self.players[players[0]].wins += 1
+        elif self.players[players[0]].score < self.players[players[1]].score:
+            self.players[players[1]].wins += 1
+
+        self.current_players = ()
+        print("MATCH FINISHED") # DEBUG
+
+    async def cycle(self, players):
+        t_delta = time() - self.time_elapsed
+
+        if t_delta > 10e-3: # 10ms
+
+            self.ball.bounce_vertical()
+            if not self.ball.bounce_horizontal(self.paddle_range(players)):
+                self.set_score(players)
+
+            self.ball.position.x += self.ball.velocity.x * t_delta
+            self.ball.position.y += self.ball.velocity.y * t_delta
+
+        self.time_elapsed = time()
 
 class GamePool:
     games : dict[str, Game] = {}
@@ -113,3 +301,6 @@ class GamePool:
     @classmethod
     def __getitem__(cls, room_name: str) -> Game:
         return cls.games[room_name]
+
+class PairNotFound(Exception):
+    pass

@@ -54,10 +54,55 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
                 "room": self.room_group_name,
                 "username": self.username}
 
-        if message_type != "chat.command":
+        if message_type == "chat.message":
             await self.channel_layer.group_send(self.room_group_name, data)
         else:
             await self.channel_layer.send(self.channel_name, data)
+
+    async def pong_status(self, event):
+        game = GamePool()[self.room_name]
+    
+        ball_data = {
+            "pos_x": game.ball.position.x,
+            "pox_y": game.ball.position.y,
+            "vel_x": game.ball.velocity.x,
+            "vel_y": game.ball.velocity.y,
+            "radius": game.ball.radius
+        }
+
+        players = {}
+
+        for p in game.players:
+            user = game.players[p]
+            players[p] = {
+                "is_ready": user.is_ready,
+                "is_playing": user.is_playing,
+                "pos_x": user.position.x,
+                "pos_y": user.position.y,
+                "vel": user.velocity,
+                "score": user.score,
+                "total_score": user.total_score,
+                "wins": user.wins,
+            }
+
+        data = {
+            "status": game.status,
+            "type": game.type,
+            "max_players": game.max_players,
+            "ball": ball_data,
+            "board_size": (game.board_size.x, game.board_size.y),
+            "paddle_size": (game.paddle_size.x, game.paddle_size.y),
+            "players": players,
+            "current_players": game.current_players,
+            "seconds": game.time_elapsed - game.time_started,
+            "max_seconds": game.time_max,
+        }
+
+        await self.send(text_data=json.dumps({"type": "pong.status", "message": json.dumps(data)}))
+
+    async def pong_ready(self, event):
+        username = event["username"]
+        await GamePool()[self.room_name].toggle_ready(username)
 
     async def chat_message(self, event):
         username = event["username"]

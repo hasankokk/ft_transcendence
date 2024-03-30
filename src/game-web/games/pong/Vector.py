@@ -1,3 +1,5 @@
+import math
+
 class Vector2D:
     def __init__(self, x, y):
         self.x = x
@@ -28,3 +30,17 @@ class Vector2D:
             vec.x *= other
             vec.y *= other
         return vec
+
+    def __abs__(self):
+        return Vector2D(abs(self.x), abs(self.y))
+
+    def __len__(self):
+        return math.sqrt(self.x * self.x + self.y * self.y)
+
+    def __getitem__(self, inx):
+        if inx == 0:
+            return self.x
+        elif inx == 1:
+            return self.y
+        else:
+            raise IndexError()

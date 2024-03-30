@@ -9,9 +9,11 @@ function chatRoom() {
 
   document.querySelector("#chat-message-submit").disabled = true;
   document.querySelector("#chat-message-input").disabled = true;
+  document.querySelector("#room-ready").disabled = true;
 
   let chatSocket;
   let isConnected = false;
+  let pingInterval;
 
   document.querySelector("#room-connect").onclick = function (e) {
     const messageInputDom = document.querySelector("#room-input");
@@ -32,12 +34,21 @@ function chatRoom() {
 
       document.querySelector("#chat-message-submit").disabled = false;
       document.querySelector("#chat-message-input").disabled = false;
+      document.querySelector("#room-ready").disabled = false;
       isConnected = true;
+      pingInterval = setInterval(function () {
+        pingPong(chatSocket);
+      }, 1000);
     };
 
     chatSocket.onmessage = function (e) {
       const data = JSON.parse(e.data);
-      document.querySelector("#chat-log").value += data.message + "\n";
+      if ("type" in data & data.type === "pong.status") {
+        const info = JSON.stringify(JSON.parse(data.message), null, 2);
+        document.querySelector("#ping-log").value = info + "\n";
+      } else {
+        document.querySelector("#chat-log").value += data.message + "\n";
+      }
     };
 
     chatSocket.onclose = function (e) {
@@ -46,7 +57,9 @@ function chatRoom() {
 
       document.querySelector("#chat-message-submit").disabled = true;
       document.querySelector("#chat-message-input").disabled = true;
+      document.querySelector("#room-ready").disabled = true;
       isConnected = false;
+      clearInterval(pingInterval);
     };
 
     document.querySelector("#chat-message-submit").onclick = function (e) {
@@ -73,4 +86,26 @@ function chatRoom() {
   document.querySelector("#room-disconnect").onclick = function (e) {
     chatSocket.close();
   };
+
+  document.querySelector("#room-ready").onclick = function (e) {
+    pingReady(chatSocket);
+  }
+}
+
+function pingPong(socket) {
+  socket.send(
+    JSON.stringify({
+      type: "pong.status",
+      message: "",
+    })
+  );
+}
+
+function pingReady(socket) {
+  socket.send(
+    JSON.stringify({
+      type: "pong.ready",
+      message: "",
+    })
+  );
 }
