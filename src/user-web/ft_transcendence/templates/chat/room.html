@@ -1,7 +1,14 @@
+<div class="container-fluid">
+    <textarea id="chat-log" cols="80" rows="20"></textarea>
+    <div>
+        <input id="chat-message-input" type="text" size="80">
+        <input id="chat-message-submit" type="button" value="Send">
+    </div>
+    <div>
+        <input id="room-input" type="text" size="20" placeholder="Room name">
+        <input id="room-connect" type="button" value="Connect">
+        <input id="room-disconnect" type="button" value="Disconnect">
+    </div>
+</div>
 
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
-
-    {% include 'eoc.html' %}
+{% include 'eoc.html' %}
