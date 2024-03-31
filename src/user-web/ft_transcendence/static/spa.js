@@ -3,7 +3,7 @@ const funcMap = {
   Login: bindLogin,
   Games: bindGame,
   Chat: bindChat,
-  ChatRoom: bindChatRoom,
+  PongRoom: bindPongRoom,
   Ranking: bindRanking,
   Profile: bindProfile,
 };
@@ -11,6 +11,8 @@ const funcMap = {
 const items = document.getElementsByClassName("nav-item");
 const main_content = document.getElementById("main-content");
 let bindFunc;
+let chatSocket;
+let pongSocket;
 const observer = new MutationObserver(function (mutations) {
   for (const mutation of mutations) {
     console.log(mutation); // DEBUG
@@ -22,7 +24,7 @@ const observer = new MutationObserver(function (mutations) {
       } else if (element.classList.contains("eoc")) {
         console.log("eoc found!");
         updateContentAnchors();
-        if (bindFunc !== null & typeof bindFunc !== "undefined") {
+        if ((bindFunc !== null) & (typeof bindFunc !== "undefined")) {
           bindFunc();
           bindFunc = null;
         }
@@ -51,6 +53,11 @@ window.addEventListener("load", (e) => {
     history.replaceState(getState("/home", funcMap["Home"]), "", "");
   }
   loadHistoryEvent(history);
+});
+
+window.addEventListener("unload", (e) => {
+  closeSocket(chatSocket);
+  closeSocket(pongSocket);
 });
 
 window.addEventListener("popstate", (e) => {

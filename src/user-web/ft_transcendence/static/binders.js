@@ -46,7 +46,7 @@ function bindHome() {}
 
 function bindGame() {
   console.log("called bingGame");
-  window.pong_start()
+  window.pong_start();
 }
 
 function bindRanking() {}
@@ -57,8 +57,8 @@ function bindChat() {
   chatFunction();
 }
 
-function bindChatRoom() {
-  chatRoom();
+function bindPongRoom() {
+  pongRoom();
 }
 
 function bindAnchor(anchorInstance, func) {
@@ -102,7 +102,7 @@ function loadContent(anchorInstanceOrPath, pushHistory = true) {
         const state = getState(requestUrl, bindFunc);
         history.pushState(state, "", "");
       }
-
+      closeSocket(pongSocket);
       element.innerHTML = text;
     });
   checkUserSession();
@@ -133,4 +133,12 @@ function getState(path, binder) {
     binder_name:
       binder !== null && typeof binder !== "undefined" ? binder.name : null,
   };
+}
+
+function closeSocket(socketInstance) {
+  if (typeof socketInstance === "object") {
+    if (socketInstance.readyState === WebSocket.OPEN) {
+      socketInstance.close();
+    }
+  }
 }

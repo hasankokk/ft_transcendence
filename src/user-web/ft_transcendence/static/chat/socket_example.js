@@ -1,77 +1,79 @@
-function chatRoom() {
-  document.querySelector("#chat-message-input").focus();
-  document.querySelector("#chat-message-input").onkeyup = function (e) {
+function pongRoom() {
+  document.querySelector("#pong-message-input").focus();
+  document.querySelector("#pong-message-input").onkeyup = function (e) {
     if (e.key === "Enter") {
       // enter, return
-      document.querySelector("#chat-message-submit").click();
+      document.querySelector("#pong-message-submit").click();
     }
   };
 
-  setDisabledChatRoom();
+  setDisabledPongRoom();
 
-  let chatSocket;
   let isConnected = false;
   let pingInterval;
 
-  document.querySelector("#room-connect").onclick = function (e) {
-    const messageInputDom = document.querySelector("#room-input");
+  document.querySelector("#pong-room-connect").onclick = function (e) {
+    const messageInputDom = document.querySelector("#pong-room-input");
     const message = messageInputDom.value;
     const roomName = message;
 
     if (isConnected) {
-      chatSocket.close();
+      pongSocket.close();
     }
 
-    chatSocket = new WebSocket(
+    pongSocket = new WebSocket(
       "ws://" + window.location.host + "/pong/socket/" + roomName + "/"
     );
 
-    chatSocket.onopen = function (e) {
-      document.querySelector("#chat-log").value +=
-        "[!] Connected to " + chatSocket.url + "\n";
+    pongSocket.onopen = function (e) {
+      document.querySelector("#pong-message-log").value +=
+        "[!] Connected to " + pongSocket.url + "\n";
 
-      setDisabledChatRoom(false);
+      setDisabledPongRoom(false);
       isConnected = true;
       pingInterval = setInterval(function () {
-        pingPong(chatSocket);
+        pingPong(pongSocket);
       }, 1000);
     };
 
-    chatSocket.onmessage = function (e) {
+    pongSocket.onmessage = function (e) {
       const data = JSON.parse(e.data);
       if (("type" in data) & (data.type === "pong.status")) {
         const info = JSON.parse(data.message);
-        document.querySelector("#ping-log").value = JSON.stringify(
+        document.querySelector("#pong-ping-log").value = JSON.stringify(
           info,
           null,
           4
         );
         if (("current_players" in info) & (info.current_players.length > 0)) {
-          replaceOutput(info.players[info.current_players[0]], "player1-log", [
-            "0",
-            info.current_players[0],
-          ]);
-          replaceOutput(info.players[info.current_players[1]], "player2-log", [
-            "1",
-            info.current_players[1],
-          ]);
+          replaceOutput(
+            info.players[info.current_players[0]],
+            "pong-player1-log",
+            ["0", info.current_players[0]]
+          );
+          replaceOutput(
+            info.players[info.current_players[1]],
+            "pong-player2-log",
+            ["1", info.current_players[1]]
+          );
         }
       } else {
-        document.querySelector("#chat-log").value += data.message + "\n";
+        document.querySelector("#pong-message-log").value +=
+          data.message + "\n";
       }
     };
 
-    chatSocket.onclose = function (e) {
-      document.querySelector("#chat-log").value +=
-        "[!] Chat socket closed at " + chatSocket.url + "\n";
+    pongSocket.onclose = function (e) {
+      document.querySelector("#pong-message-log").value +=
+        "[!] Pong socket closed at " + pongSocket.url + "\n";
 
-      setDisabledChatRoom();
+      setDisabledPongRoom();
       isConnected = false;
       clearInterval(pingInterval);
     };
 
-    document.querySelector("#chat-message-submit").onclick = function (e) {
-      const messageInputDom = document.querySelector("#chat-message-input");
+    document.querySelector("#pong-message-submit").onclick = function (e) {
+      const messageInputDom = document.querySelector("#pong-message-input");
       const message = messageInputDom.value;
       let type;
 
@@ -81,7 +83,7 @@ function chatRoom() {
         type = "chat.message";
       }
 
-      chatSocket.send(
+      pongSocket.send(
         JSON.stringify({
           type: type,
           message: message,
@@ -91,20 +93,20 @@ function chatRoom() {
     };
   };
 
-  document.querySelector("#room-disconnect").onclick = function (e) {
-    chatSocket.close();
+  document.querySelector("#pong-room-disconnect").onclick = function (e) {
+    pongSocket.close();
   };
 
-  document.querySelector("#room-ready").onclick = function (e) {
-    pingReady(chatSocket);
+  document.querySelector("#pong-room-ready").onclick = function (e) {
+    pingReady(pongSocket);
   };
 
-  document.querySelector("#room-move-up").onclick = function (e) {
-    pingMove(chatSocket, true);
+  document.querySelector("#pong-room-move-up").onclick = function (e) {
+    pingMove(pongSocket, true);
   };
 
-  document.querySelector("#room-move-down").onclick = function (e) {
-    pingMove(chatSocket, false);
+  document.querySelector("#pong-room-move-down").onclick = function (e) {
+    pingMove(pongSocket, false);
   };
 }
 
@@ -172,10 +174,10 @@ function replaceOutput(input, targetElementId, playerInfo = ["x", "username"]) {
     syntaxHighlight(input);
 }
 
-function setDisabledChatRoom(setBool = true) {
-  document.querySelector("#chat-message-submit").disabled = setBool;
-  document.querySelector("#chat-message-input").disabled = setBool;
-  document.querySelector("#room-ready").disabled = setBool;
-  document.querySelector("#room-move-up").disabled = setBool;
-  document.querySelector("#room-move-down").disabled = setBool;
+function setDisabledPongRoom(setBool = true) {
+  document.querySelector("#pong-message-submit").disabled = setBool;
+  document.querySelector("#pong-message-input").disabled = setBool;
+  document.querySelector("#pong-room-ready").disabled = setBool;
+  document.querySelector("#pong-room-move-up").disabled = setBool;
+  document.querySelector("#pong-room-move-down").disabled = setBool;
 }
