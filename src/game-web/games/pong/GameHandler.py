@@ -9,7 +9,7 @@ from pong.Vector import Vector2D
 
 class Player:
     def __init__(self, board_size : Vector2D, paddle_size : Vector2D,
-                 nickname: str | None = None, velocity=5.0):
+                 nickname: str | None = None, velocity=500.0):
         self.nickname = nickname
         
         self.is_ready = False
@@ -30,6 +30,11 @@ class Player:
 
     def toggle_position_x(self):
         self.position.x = -self.position.x
+
+    def move(self, to_up : bool, factor):
+        direction = 1 if to_up else -1
+        
+        self.position.y += direction * factor * self.velocity
 
 class Ball:
     def __init__(self, board_size: Vector2D, paddle_size: Vector2D,
@@ -96,9 +101,9 @@ class GameType(IntEnum):
 
 class Game:
     def __init__(self,
-                 board_size=(800,600), paddle_size=(2,5),
+                 board_size=(800,600), paddle_size=(30,100),
                  ball_radius=5.0, ball_velocity=(35.0, 25.0),
-                 time_max = 15, type=GameType.ONEVONE):
+                 time_max = 30, type=GameType.ONEVONE):
 
         self.players : dict[str, Player] = {} # All players
         self.current_players = tuple() # 1V1 players when game is active
@@ -172,6 +177,13 @@ class Game:
             task = asyncio.create_task(self.startGame())
             self.task.add(task)
             task.add_done_callback(self.task.discard)
+
+    async def move_player(self, username, to_up : bool):
+        t_delta = time() - self.time_elapsed
+
+        if t_delta > 10e-3: # 10ms
+            self.players[username].move(to_up, 0.1)
+
 
     def __str__(self):
         return str([username for username in self.players])

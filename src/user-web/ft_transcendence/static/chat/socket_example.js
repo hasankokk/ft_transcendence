@@ -7,9 +7,7 @@ function chatRoom() {
     }
   };
 
-  document.querySelector("#chat-message-submit").disabled = true;
-  document.querySelector("#chat-message-input").disabled = true;
-  document.querySelector("#room-ready").disabled = true;
+  setDisabledChatRoom();
 
   let chatSocket;
   let isConnected = false;
@@ -32,9 +30,7 @@ function chatRoom() {
       document.querySelector("#chat-log").value +=
         "[!] Connected to " + chatSocket.url + "\n";
 
-      document.querySelector("#chat-message-submit").disabled = false;
-      document.querySelector("#chat-message-input").disabled = false;
-      document.querySelector("#room-ready").disabled = false;
+      setDisabledChatRoom(false);
       isConnected = true;
       pingInterval = setInterval(function () {
         pingPong(chatSocket);
@@ -69,9 +65,7 @@ function chatRoom() {
       document.querySelector("#chat-log").value +=
         "[!] Chat socket closed at " + chatSocket.url + "\n";
 
-      document.querySelector("#chat-message-submit").disabled = true;
-      document.querySelector("#chat-message-input").disabled = true;
-      document.querySelector("#room-ready").disabled = true;
+      setDisabledChatRoom();
       isConnected = false;
       clearInterval(pingInterval);
     };
@@ -104,6 +98,14 @@ function chatRoom() {
   document.querySelector("#room-ready").onclick = function (e) {
     pingReady(chatSocket);
   };
+
+  document.querySelector("#room-move-up").onclick = function (e) {
+    pingMove(chatSocket, true);
+  };
+
+  document.querySelector("#room-move-down").onclick = function (e) {
+    pingMove(chatSocket, false);
+  };
 }
 
 function pingPong(socket) {
@@ -120,6 +122,15 @@ function pingReady(socket) {
     JSON.stringify({
       type: "pong.ready",
       message: "",
+    })
+  );
+}
+
+function pingMove(socket, to_up = true) {
+  socket.send(
+    JSON.stringify({
+      type: "pong.move",
+      to_up: to_up,
     })
   );
 }
@@ -159,4 +170,12 @@ function replaceOutput(input, targetElementId, playerInfo = ["x", "username"]) {
     "player " + playerInfo[0] + ": " + playerInfo[1];
   target.appendChild(document.createElement("pre")).innerHTML =
     syntaxHighlight(input);
+}
+
+function setDisabledChatRoom(setBool = true) {
+  document.querySelector("#chat-message-submit").disabled = setBool;
+  document.querySelector("#chat-message-input").disabled = setBool;
+  document.querySelector("#room-ready").disabled = setBool;
+  document.querySelector("#room-move-up").disabled = setBool;
+  document.querySelector("#room-move-down").disabled = setBool;
 }

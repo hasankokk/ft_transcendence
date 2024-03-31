@@ -19,10 +19,12 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
 
         if self.username is None:
             await self.close()
+            return
 
         GamePool().add_game(self.room_name)
         if not GamePool()[self.room_name].add_player(self.channel_name, self.username):
             await self.close()
+            return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
@@ -47,14 +49,12 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
-        message_type = text_data_json.get("type", "chat.message")
-        data = {"type": message_type,
-                "message": message,
-                "room": self.room_group_name,
-                "username": self.username}
+        data = text_data_json
+        data["room"] = self.room_group_name
+        data["username"] = self.username
+        data["type"] = text_data_json.get("type", "chat.message")
 
-        if message_type == "chat.message":
+        if data["type"] == "chat.message":
             await self.channel_layer.group_send(self.room_group_name, data)
         else:
             await self.channel_layer.send(self.channel_name, data)
@@ -103,6 +103,13 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
     async def pong_ready(self, event):
         username = event["username"]
         await GamePool()[self.room_name].toggle_ready(username)
+
+    async def pong_move(self, event):
+        username = event["username"]
+        to_up = event.get("to_up", None)
+
+        if to_up is not None and isinstance(to_up, bool):
+            await GamePool()[self.room_name].move_player(username, to_up)
 
     async def chat_message(self, event):
         username = event["username"]
