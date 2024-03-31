@@ -1,17 +1,21 @@
 <div class="container-fluid">
-    <textarea id="chat-log" cols="80" rows="20" readonly></textarea>
-    <div>
-        <input id="chat-message-input" type="text" size="80">
-        <input id="chat-message-submit" type="button" value="Send">
+    <div class="row m-1">
+        <textarea class="col" id="chat-log" rows="20" readonly></textarea>
     </div>
-    <div>
-        <input id="room-input" type="text" size="20" placeholder="Room name">
-        <input id="room-connect" type="button" value="Connect">
-        <input id="room-disconnect" type="button" value="Disconnect">
-        <input id="room-ready" type="button" value="Toggle Ready">
+    <div class="row m-1">
+        <input class="col-10" id="chat-message-input" type="text" placeholder="Message">
+        <input class="col-2" id="chat-message-submit" type="button" value="Send">
     </div>
-    <div>
-        <textarea id="ping-log" cols="30" rows="20" readonly></textarea>
+    <div class="row m-1">
+        <input class="col-3" id="room-input" type="text" placeholder="Room name">
+        <input class="col-2" id="room-connect" type="button" value="Connect">
+        <input class="col-2" id="room-disconnect" type="button" value="Disconnect">
+        <input class="col-2" id="room-ready" type="button" value="Toggle Ready">
+    </div>
+    <div class="row m-1">
+        <textarea class="col" id="ping-log" rows="20" readonly></textarea>
+        <div class="bg-dark text-light col" id="player1-log"></div>
+        <div class="bg-dark text-light col" id="player2-log"></div>
     </div>
 </div>
 
