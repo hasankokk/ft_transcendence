@@ -3,6 +3,7 @@ from time import time
 
 import random
 import asyncio
+import copy
 
 from pong.Vector import Vector2D
 
@@ -16,7 +17,7 @@ class Player:
         self.times_played = 0
 
         self.def_position = abs(Vector2D(board_size.x / 2 - paddle_size.x, 0))
-        self.position = self.def_position
+        self.position = copy.copy(self.def_position)
         self.velocity = velocity
 
         self.score = 0
@@ -24,7 +25,7 @@ class Player:
         self.wins = 0
 
     def reset_game_variables(self):
-        self.position = self.def_position
+        self.position = copy.copy(self.def_position)
         self.is_ready = False
 
     def toggle_position_x(self):
@@ -36,8 +37,8 @@ class Ball:
 
         self.def_position = Vector2D(position[0], position[1])
         self.def_velocity = abs(Vector2D(velocity[0], velocity[1]))
-        self.position = self.def_position
-        self.velocity = self.def_velocity
+        self.position = copy.copy(self.def_position)
+        self.velocity = copy.copy(self.def_velocity)
 
         self.radius = abs(radius)
 
@@ -48,16 +49,17 @@ class Ball:
 
     def reset_game_variables(self):
         """Reset variables to default"""
-        self.position = self.def_position
-        self.velocity = self.def_velocity
+        self.position = copy.copy(self.def_position)
+        self.velocity = copy.copy(self.def_velocity)
 
     def reset(self):
         """Reset ball based on last score"""
-        if self.position.x > 0:
-            self.reset_game_variables()
+        pos_x = self.position.x
+        self.reset_game_variables()
+
+        if pos_x > 0:
             self.velocity.x = abs(self.velocity.x)
         else:
-            self.reset_game_variables()
             self.velocity.x = -abs(self.velocity.x)
 
     def bounce_vertical(self) -> bool:
@@ -95,7 +97,7 @@ class GameType(IntEnum):
 class Game:
     def __init__(self,
                  board_size=(800,600), paddle_size=(2,5),
-                 ball_radius=5.0, ball_velocity=(35.0, 15.0),
+                 ball_radius=5.0, ball_velocity=(35.0, 25.0),
                  time_max = 15, type=GameType.ONEVONE):
 
         self.players : dict[str, Player] = {} # All players
