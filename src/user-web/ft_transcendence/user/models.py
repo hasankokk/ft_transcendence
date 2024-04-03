@@ -68,7 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class UserRelationship(models.Model):
     class Meta:
         constraints = [
-            UniqueConstraint(fields=["user1", "user2"], name="index_constraint"),
+            UniqueConstraint(fields=["user1", "user2"], name="relationship_index_constraint"),
             CheckConstraint(check=Q(user2__gt=F('user1')), name="user2__gt_user1"),
         ]
 
