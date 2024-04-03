@@ -1,4 +1,4 @@
-function submitForm(formInstance) {
+function submitForm(formInstance, toBind) {
   const form = formInstance;
   const formData = new FormData(form);
 
@@ -20,20 +20,26 @@ function submitForm(formInstance) {
     },
     body: JSON.stringify(postData),
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      loadContent(data.redirect);
-    } else {
-      const target = document.getElementById("form_error");
-      for (const error of data.errors) { // fix : data.errors undefined
-        msg = '<div role="alert" class="alert alert-error">';
-        msg += error;
-        msg += "</div>";
-        target.appendChild(document.createTextNode(msg));
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        if (typeof toBind === "function") {
+          bindFunc = toBind;
+        }
+        loadContent(data.redirect);
+      } else {
+        const target = document.getElementById("form_error");
+        target.innerHTML = "";
+        for (const error of data.errors) {
+          // fix : data.errors undefined
+          newElement = document.createElement("div");
+          newElement.setAttribute("role", "alert");
+          newElement.classList.add("alert", "alert-danger");
+          newElement.innerText = error;
+          target.appendChild(newElement);
+        }
       }
-    }
-  });
+    });
 }
 
 function fetchOAuthUrl() {

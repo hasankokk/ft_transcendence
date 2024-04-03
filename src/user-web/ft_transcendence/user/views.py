@@ -37,7 +37,7 @@ AUTHORIZATION_URL = "https://api.intra.42.fr/oauth/authorize"
 
 logger = logging.getLogger(__name__)
 
-class RegisterView(View):
+class RegisterView(APIView):
 
     def get(self, request):
         context = {'form': forms.UserRegistrationForm().render("user/form_snippet.html")}
@@ -45,20 +45,18 @@ class RegisterView(View):
 
     def post(self, request):
         
-        data = request.POST
-        if len(request.POST) == 0:
-            data = json.loads(request.body)
+        data = json.loads(request.body)
         form = forms.UserRegistrationForm(data=data)
 
         if form.is_valid():
             try:
                 user = form.save()
             except ValueError as e:
-                return JsonResponse({'success': False, "message": "ValueError", "errors": e.args}, status=400)
+                return Response({'success': False, "message": "ValueError", "errors": e.args}, status=400)
             except:
-                return JsonResponse({'success': False, "message": _("An error occured while registering user in the database")},
+                return Response({'success': False, "message": _("An error occured while registering user in the database")},
                                     status=507)
-            return JsonResponse({'success': True, "message": _("Successfully registered")})
+            return Response({'success': True, "redirect": reverse("user:login"), "message": _("Successfully registered")})
 
         else:
             password1 = form.data.get("password1", None)
@@ -87,7 +85,7 @@ class RegisterView(View):
                         errors.append(_("Invalid username" + error))
                 else:
                     errors.append(_("Invalid form error: " + error))
-            return JsonResponse({'success': False, 'errors': errors}, status=401)
+            return Response({'success': False, 'errors': errors}, status=401)
 
 class LoginView(APIView):
     def get(self, request):
@@ -307,9 +305,7 @@ class TwoFactorAuthenticationView(APIView):
             return render(request, "error.html", {'error': "Unauthorized Request"}, status=401)
         else:
             user = get_object_or_404(get_user_model(), id=user_id)
-            data = request.POST
-            if len(data) == 0:
-                data = json.loads(request.body)
+            data = json.loads(request.body)
             form = OTPTokenForm(user, data=data)
 
             if form.is_valid():
@@ -322,7 +318,7 @@ class TwoFactorAuthenticationView(APIView):
                 response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
                 return response
             else:
-                return Response({'success': False, 'errors': form.errors}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'success': False, 'errors': [form.errors["__all__"]]}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['PUT'])

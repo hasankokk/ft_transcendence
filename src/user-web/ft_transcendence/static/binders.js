@@ -6,7 +6,7 @@ function bindLogin() {
     .getElementById("loginSubmitButton")
     .addEventListener("click", (e) => {
       e.preventDefault();
-      submitForm(e.currentTarget.form);
+      submitForm(e.currentTarget.form, bindTwoFactor);
     });
 
   console.log("called bindLogin()"); // DEBUG, Should be called when login page appears
@@ -23,9 +23,23 @@ function bindLogin() {
 
 function bindRegister() {
   console.log("called bindRegister()"); // DEBUG, Should be called when register page appears
-  const a_login = document.getElementById("loginLink");
 
+  document
+    .getElementById("registerSubmitButton")
+    .addEventListener("click", (e) => {
+      e.preventDefault();
+      submitForm(e.currentTarget.form, bindLogin);
+    });
+
+  const a_login = document.getElementById("loginLink");
   bindAnchor(a_login, bindLogin);
+}
+
+function bindTwoFactor() {
+  document.getElementById("2FASubmitButton").addEventListener("click", (e) => {
+    e.preventDefault();
+    submitForm(e.currentTarget.form);
+  });
 }
 
 function bindLogout(anchorInstance) {
