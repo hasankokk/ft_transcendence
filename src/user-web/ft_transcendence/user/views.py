@@ -140,6 +140,18 @@ def logoutView(request):
     response.delete_cookie('access_token', samesite='Strict')
     return response
 
+@api_view(['GET'])
+def profileView(request, target_id = None):
+    
+    if target_id is None:
+        user = request.user
+    else:
+        user = get_object_or_404(get_user_model(), id=target_id)
+
+    context = {"user" : user }
+    return render(request, "user/profile.html", context)
+        
+
 class refreshTokenView(APIView):
     def post(self, request):
         data = JSONParser().parse(request)

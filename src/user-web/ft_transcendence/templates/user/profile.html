@@ -1,0 +1,171 @@
+<div class="container-lg">
+  <div class="row">
+    <section>
+      <div class="container py-5">
+        <div class="row">
+          <!-- BEGIN::PROFILE VIEW LEFT SIDE -->
+          <div class="col-lg-4">
+            <div class="card mb-4 l-bg-cherry">
+              <div class="card-body text-center">
+                <img src="{% url 'user:get-user-image' user_id=user.pk %}" alt="avatar"
+                  class="rounded-circle img-fluid" style="width: 150px;">
+                <h5>{{ user.username }}</h5>
+                <p class="mb-1 text-info">Full Stack Developer for </p>
+                <p class="mb-4 text-info">Bay Area, Turkey, TR</p>
+                <div class="d-flex justify-content-center mb-2">
+                  <button type="button" class="btn btn-outline-primary">Message</button>
+                  <button type="button" class="btn btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#editProfile"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                      class="bi bi-pencil-square" viewBox="0 0 16 16">
+                      <path
+                        d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z">
+                      </path>
+                      <path fill-rule="evenodd"
+                        d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z">
+                      </path>
+                    </svg>
+                    Edit Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END::PROFILE VIEW LEFT SIDE -->
+          <!-- BEGIN::PROFILE VIEW RIGHT SIDE -->
+          <div class="col-lg-8">
+            <div class="card mb-4 l-bg-cherry">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Full Name</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <p class="mb-0">{{ user.username }}</p>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Email</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <p class="mb-0">example@example.com</p>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Phone</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <p class="mb-0">(097) 234-5678</p>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Mobile</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <p class="mb-0">(098) 765-4321</p>
+                  </div>
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Address</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <p class="mb-0">Bay Area, San Francisco, CA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END::PROFILE VIEW RIGHT SIDE -->
+          <!-- BEGIN::PROFILE VIEW ACCORDION -->
+          <div class="accordion l-bg-cherry" id="profileAccordion">
+            <div class="accordion-item l-bg-cherry">
+              <h2 class="accordion-header l-bg-cherry">
+                <button class="accordion-button d-block text-center d-block text-center l-bg-cherry text-danger"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
+                  aria-controls="collapseOne">
+                  Accordion Item #1
+                </button>
+              </h2>
+              <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#profileAccordion">
+                <div class="accordion-body">
+                  <strong>This is the first item's accordion body.</strong> It is shown by default,
+                  until the collapse plugin adds the appropriate classes that we use to style each
+                  element. These classes control the overall appearance, as well as the showing and
+                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
+                  our default variables. It's also worth noting that just about any HTML can go within
+                  the <code>.accordion-body</code>, though the transition does limit overflow.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item l-bg-cherry">
+              <h2 class="accordion-header l-bg-cherry">
+                <button class="accordion-button d-block text-center l-bg-cherry text-danger collapsed " type="button"
+                  data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
+                  aria-controls="collapseTwo">
+                  Accordion Item #2
+                </button>
+              </h2>
+              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
+                <div class="accordion-body">
+                  <strong>This is the second item's accordion body.</strong> It is hidden by default,
+                  until the collapse plugin adds the appropriate classes that we use to style each
+                  element. These classes control the overall appearance, as well as the showing and
+                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
+                  our default variables. It's also worth noting that just about any HTML can go within
+                  the <code>.accordion-body</code>, though the transition does limit overflow.
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item l-bg-cherry">
+              <h2 class="accordion-header l-bg-cherry">
+                <button class="accordion-button d-block text-center l-bg-cherry text-danger collapsed" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
+                  aria-controls="collapseThree">
+                  Accordion Item #3
+                </button>
+              </h2>
+              <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
+                <div class="accordion-body">
+                  <strong>This is the third item's accordion body.</strong> It is hidden by default,
+                  until the collapse plugin adds the appropriate classes that we use to style each
+                  element. These classes control the overall appearance, as well as the showing and
+                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
+                  our default variables. It's also worth noting that just about any HTML can go within
+                  the <code>.accordion-body</code>, though the transition does limit overflow.
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END::PROFILE VIEW ACCORDION -->
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+
+<!-- BEGIN::EDIT PROFILE MODAL -->
+<div class="modal fade" id="editProfile" tabindex="-1" aria-labelledby="editProfileLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editProfileLabel">Edit Profile</h1>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END::EDIT PROFILE MODAL -->

@@ -17,6 +17,9 @@ urlpatterns = [
     path("friend-request/", views.FriendRequestView.as_view(), name="friend-request"),
     path("two-factor/", views.TwoFactorAuthenticationView.as_view(), name="two-factor"),
 
+    path("profile/", views.profileView, name="profile"),
+    path("profile/<int:target_id>/", views.profileView, name="target-profile"),
+
     path("change-password/", views.passwordChangeView, name="change-password"),
     path("delete-account/", views.deleteUserView, name="delete-account"),
     path("add-two-factor/<int:type>/", views.TwoFactorSettingView.as_view(), name="add-two-factor"),
