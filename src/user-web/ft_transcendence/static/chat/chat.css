@@ -1,250 +1,234 @@
-body,
 html {
-	height: 100%;
-	margin: 0;
+    height: 100%;
+    margin: 0;
 }
 
-.chat {
-	margin-top: auto;
-	margin-bottom: auto;
+.chat .chat {
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
-.card {
-	height: 500px;
-	border-radius: 15px !important;
-	background-color: rgba(0, 0, 0, 0.4) !important;
+.chat .card {
+    display: flex;
+    height: 500px;
+    border-radius: 15px !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
 }
 
-.contacts_body {
-	padding: 0.75rem 0 !important;
-	overflow-y: auto;
-	white-space: nowrap;
+.chat .contacts_body {
+    padding: 0.75rem 0 !important;
+    overflow-y: auto;
+    white-space: nowrap;
 }
 
-.msg_card_body {
-	overflow-y: auto;
+.chat .msg_card_body {
+    overflow-y: auto;
 }
 
-.card-header {
-	border-radius: 15px 15px 0 0 !important;
-	border-bottom: 0 !important;
+.chat .card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: 0 !important;
 }
 
-.card-footer {
-	border-radius: 0 0 15px 15px !important;
-	border-top: 0 !important;
+.chat .card-footer {
+    border-radius: 0 0 15px 15px !important;
+    border-top: 0 !important;
 }
 
-.container {
-	align-content: center;
+.chat .type_msg {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 0 !important;
+    color: white !important;
+    height: 60px !important;
+    overflow-y: auto;
 }
 
-.search {
-	border-radius: 15px 0 0 15px !important;
-	background-color: rgba(0, 0, 0, 0.3) !important;
-	border: 0 !important;
-	color: white !important;
+.chat .type_msg:focus {
+    box-shadow: none !important;
+    outline: 0px !important;
 }
 
-.search:focus {
-	box-shadow: none !important;
-	outline: 0px !important;
+.chat .send_btn {
+    border-radius: 0 15px 15px 0 !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 0 !important;
+    color: white !important;
+    cursor: pointer;
 }
 
-.type_msg {
-	background-color: rgba(0, 0, 0, 0.3) !important;
-	border: 0 !important;
-	color: white !important;
-	height: 60px !important;
-	overflow-y: auto;
+.chat .search_btn {
+    border-radius: 0 15px 15px 0 !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 0 !important;
+    color: white !important;
+    cursor: pointer;
 }
 
-.type_msg:focus {
-	box-shadow: none !important;
-	outline: 0px !important;
+.chat .contacts {
+    list-style: none;
+    padding: 0;
 }
 
-.send_btn {
-	border-radius: 0 15px 15px 0 !important;
-	background-color: rgba(0, 0, 0, 0.3) !important;
-	border: 0 !important;
-	color: white !important;
-	cursor: pointer;
+.chat .contacts li {
+    width: 100% !important;
+    padding: 5px 10px;
+    margin-bottom: 15px !important;
 }
 
-.search_btn {
-	border-radius: 0 15px 15px 0 !important;
-	background-color: rgba(0, 0, 0, 0.3) !important;
-	border: 0 !important;
-	color: white !important;
-	cursor: pointer;
+.chat .active {
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
-.contacts {
-	list-style: none;
-	padding: 0;
+.chat .user_img {
+    height: 60px;
+    width: 60px;
+    border: 1.5px solid #f5f6fa;
 }
 
-.contacts li {
-	width: 100% !important;
-	padding: 5px 10px;
-	margin-bottom: 15px !important;
+.chat .user_img_msg {
+    height: 40px;
+    width: 40px;
+    border: 1.5px solid #f5f6fa;
 }
 
-.active {
-	background-color: rgba(0, 0, 0, 0.3);
+.chat .img_cont {
+    position: relative;
+    height: 70px;
+    width: 70px;
 }
 
-.user_img {
-	height: 60px;
-	width: 60px;
-	border: 1.5px solid #f5f6fa;
+.chat .img_cont_msg {
+    height: 40px;
+    width: 40px;
 }
 
-.user_img_msg {
-	height: 40px;
-	width: 40px;
-	border: 1.5px solid #f5f6fa;
+.chat .online_icon {
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    background-color: #4cd137;
+    border-radius: 50%;
+    bottom: 13px;
+    right: 13px;
+    border: 1.5px solid white;
 }
 
-.img_cont {
-	position: relative;
-	height: 70px;
-	width: 70px;
+.chat .offline {
+    background-color: #c23616 !important;
 }
 
-.img_cont_msg {
-	height: 40px;
-	width: 40px;
+.chat .user_info {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 15px;
 }
 
-.online_icon {
-	position: absolute;
-	height: 15px;
-	width: 15px;
-	background-color: #4cd137;
-	border-radius: 50%;
-	bottom: 13px;
-	right: 13px;
-	border: 1.5px solid white;
+.chat .user_info span {
+    font-size: 20px;
+    color: white;
 }
 
-.offline {
-	background-color: #c23616 !important;
+.chat .user_info p {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.user_info {
-	margin-top: auto;
-	margin-bottom: auto;
-	margin-left: 15px;
+.chat .video_cam {
+    margin-left: 50px;
+    margin-top: 5px;
 }
 
-.user_info span {
-	font-size: 20px;
-	color: white;
+.chat .video_cam span {
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 20px;
 }
 
-.user_info p {
-	font-size: 10px;
-	color: rgba(255, 255, 255, 0.6);
+.chat .msg_cotainer {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: 10px;
+    border-radius: 25px;
+    background-color: #0e0114;
+    padding: 10px;
+    position: relative;
 }
 
-.video_cam {
-	margin-left: 50px;
-	margin-top: 5px;
+.chat .msg_cotainer_send {
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 10px;
+    border-radius: 25px;
+    background-color: #2e2f2e;
+    padding: 10px;
+    position: relative;
 }
 
-.video_cam span {
-	color: white;
-	font-size: 20px;
-	cursor: pointer;
-	margin-right: 20px;
+.chat .msg_head {
+    position: relative;
 }
 
-.msg_cotainer {
-	margin-top: auto;
-	margin-bottom: auto;
-	margin-left: 10px;
-	border-radius: 25px;
-	background-color: #0e0114;
-	padding: 10px;
-	position: relative;
+.chat #action_menu_btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
 }
 
-.msg_cotainer_send {
-	margin-top: auto;
-	margin-bottom: auto;
-	margin-right: 10px;
-	border-radius: 25px;
-	background-color: #2e2f2e;
-	padding: 10px;
-	position: relative;
+.chat .action_menu {
+    z-index: 1;
+    position: absolute;
+    padding: 15px 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 15px;
+    top: 30px;
+    right: 15px;
+    display: none;
 }
 
-.msg_head {
-	position: relative;
+.chat .action_menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-#action_menu_btn {
-	position: absolute;
-	right: 10px;
-	top: 10px;
-	color: white;
-	cursor: pointer;
-	font-size: 20px;
+.chat .action_menu ul li {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 5px;
 }
 
-.action_menu {
-	z-index: 1;
-	position: absolute;
-	padding: 15px 0;
-	background-color: rgba(0, 0, 0, 0.5);
-	color: white;
-	border-radius: 15px;
-	top: 30px;
-	right: 15px;
-	display: none;
+.chat .action_menu ul li i {
+    padding-right: 10px;
 }
 
-.action_menu ul {
-	list-style: none;
-	padding: 0;
-	margin: 0;
+.chat .action_menu ul li:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
-.action_menu ul li {
-	width: 100%;
-	padding: 10px 15px;
-	margin-bottom: 5px;
+.chat ::-webkit-scrollbar {
+    width: 10px;
 }
 
-.action_menu ul li i {
-	padding-right: 10px;
+.chat ::-webkit-scrollbar-track {
+    background: #f1f1f1;
 }
 
-.action_menu ul li:hover {
-	cursor: pointer;
-	background-color: rgba(0, 0, 0, 0.2);
+.chat ::-webkit-scrollbar-thumb {
+    background: #888;
 }
 
-::-webkit-scrollbar {
-	width: 10px;
-}
-
-::-webkit-scrollbar-track {
-	background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-	background: #888;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: #555;
+.chat ::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 @media(max-width: 576px) {
-	.contacts_card {
-		margin-bottom: 15px !important;
-	}
+    .chat .contacts_card {
+        margin-bottom: 15px !important;
+    }
 }
