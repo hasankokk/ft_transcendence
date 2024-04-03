@@ -54,9 +54,10 @@ class RegisterView(View):
             try:
                 user = form.save()
             except ValueError as e:
-                return JsonResponse({'success': False, "message": "ValueError", "errors": e.args})
+                return JsonResponse({'success': False, "message": "ValueError", "errors": e.args}, status=400)
             except:
-                return JsonResponse({'success': False, "message": _("An error occured while registering user in the database")})
+                return JsonResponse({'success': False, "message": _("An error occured while registering user in the database")},
+                                    status=507)
             return JsonResponse({'success': True, "message": _("Successfully registered")})
 
         else:
@@ -86,7 +87,7 @@ class RegisterView(View):
                         errors.append(_("Invalid username" + error))
                 else:
                     errors.append(_("Invalid form error: " + error))
-            return JsonResponse({'errors': errors})
+            return JsonResponse({'success': False, 'errors': errors}, status=401)
 
 class LoginView(APIView):
     def get(self, request):
@@ -287,13 +288,13 @@ class TwoFactorAuthenticationView(APIView):
         user_id = request.session.get("attempting_user", None)
         if user_id is None:
             return render(request, "error.html", {'error': "Unauthorized Request"}, status=401)
-            
         else:
             user = get_object_or_404(get_user_model(), id=user_id)
             if user.two_fa_auth_type == get_user_model().TwoFAType.EMAIL:
-                pass
                 device = get_object_or_404(EmailDevice, user=user)
-                # device.generate_challenge()
+                device.generate_challenge()
+            elif user.two_fa_auth_type == get_user_model().TwoFAType.TOTP:
+                pass
             else:
                 return HttpResponse("No two-factor authentication device registered for the user #" + str(user_id), status=401)
             
@@ -301,7 +302,28 @@ class TwoFactorAuthenticationView(APIView):
             context = {'form': form}
             return render(request, "user/two-factor.html", context)
     def post(self, request):
-        return Response({'message': "POST request is NOT implemented"})
+        user_id = request.session.get("attempting_user", None)
+        if user_id is None:
+            return render(request, "error.html", {'error': "Unauthorized Request"}, status=401)
+        else:
+            user = get_object_or_404(get_user_model(), id=user_id)
+            data = request.POST
+            if len(data) == 0:
+                data = json.loads(request.body)
+            form = OTPTokenForm(user, data=data)
+
+            if form.is_valid():
+                refresh = RefreshToken.for_user(user)
+                response_data = {'success': True,
+                                 'redirect': reverse('home'),
+                                 'message': _("Login successful")}
+                response = Response(response_data)
+                response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
+                response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
+                return response
+            else:
+                return Response({'success': False, 'errors': form.errors}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -339,6 +361,32 @@ def deleteUserView(request):
     response.delete_cookie('access_token', samesite='Strict')
     request.user.delete()
     return response
+
+class TwoFactorSettingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, type):
+        try:
+            device = request.user.register_otp_device(type)
+        except Exception as e:
+            return Response({'success': False,
+                             'message': _('Cannot set an OTP device'),
+                             'errors': [str(e)]})
+
+        response_data = {'success': True, 'message': _('Successfuly set OTP device')}
+
+        if type == get_user_model().TwoFAType.TOTP:
+            response_data["secret"] = device.config_url
+
+        return Response(response_data)
+
+    def delete(self, request):
+        try:
+            request.user.remove_otp_device()
+            return Response({'success': True, 'message': _('Successfuly removed the OTP device')})
+        except Exception as e:
+            return Response({'success': False, 'message': _('Cannot remove any OTP device'),
+                             'errors': [str(e)]})
 
 class UserImageView(APIView):
     def get(self, request, user_id=None):

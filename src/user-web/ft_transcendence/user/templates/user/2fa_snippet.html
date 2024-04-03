@@ -13,6 +13,11 @@
     {% endfor %}
 
     </select>
+
+    {% elif field.id_for_label == 'id_otp_challenge' %}
+
+    <!-- OTP Challenge Button for Interactive Devices -->
+
     {% else %}
 
     <input class="form-control bg-transparent text-white" id="{{ field.id_for_label }}"

@@ -4,6 +4,9 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
+from django_otp.plugins.otp_email.models import EmailDevice
+from django_otp.plugins.otp_totp.models import TOTPDevice
+
 import os
 
 class UserManager(BaseUserManager):
@@ -38,10 +41,10 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
 
-    class TwoFAType(models.TextChoices):
-        NONE = "NIL", _("None")
-        EMAIL = "EMA", _("Email")
-        TOTP = "TTP", _("TOTP")
+    class TwoFAType(models.IntegerChoices):
+        NONE = 1, _("None")
+        EMAIL = 2, _("Email")
+        TOTP = 3, _("TOTP")
 
     def user_directory_path(self, filename):
         return "image/user/{0}{1}".format(self.pk,
@@ -52,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     image = models.ImageField(_('user image'), upload_to=user_directory_path, blank=True,
                               default="image/default/user.png")
     is_42authenticated = models.BooleanField(_('is user authenticated by 42'), default=False)
-    two_fa_auth_type = models.CharField(max_length=3, choices=TwoFAType, default=TwoFAType.NONE)
+    two_fa_auth_type = models.IntegerField(choices=TwoFAType, default=TwoFAType.NONE)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -64,6 +67,37 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
+
+    def register_otp_device(self, type : TwoFAType):
+
+        if self.two_fa_auth_type != self.TwoFAType.NONE: # Lazy test
+            raise Exception("User already has a registered device")
+
+        if type == self.TwoFAType.EMAIL:
+            device = EmailDevice.objects.create(user=self, name="Email")
+            self.two_fa_auth_type = self.TwoFAType.EMAIL
+            self.save()
+            return device
+        elif type == self.TwoFAType.TOTP:
+            device = TOTPDevice.objects.create(user=self, name="Auth App")
+            self.two_fa_auth_type = self.TwoFAType.TOTP
+            self.save()
+            return device
+        else:
+            raise Exception("Adding other devices is not implemented")
+
+        return None
+        
+    def remove_otp_device(self):
+        if self.two_fa_auth_type == self.TwoFAType.EMAIL:
+            EmailDevice.objects.devices_for_user(user=self).delete()
+        elif self.two_fa_auth_type == self.TwoFAType.TOTP:
+            TOTPDevice.objects.devices_for_user(user=self).delete()
+        else:
+            raise Exception("Removing other devices is not implemented")
+
+        self.two_fa_auth_type = self.TwoFAType.NONE
+        self.save()
 
 class UserRelationship(models.Model):
     class Meta:

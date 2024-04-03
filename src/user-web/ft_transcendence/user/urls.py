@@ -19,6 +19,8 @@ urlpatterns = [
 
     path("change-password/", views.passwordChangeView, name="change-password"),
     path("delete-account/", views.deleteUserView, name="delete-account"),
+    path("add-two-factor/<int:type>/", views.TwoFactorSettingView.as_view(), name="add-two-factor"),
+    path("remove-two-factor/", views.TwoFactorSettingView.as_view(), name="remove-two-factor"),
     path("get_image/<int:user_id>/", views.UserImageView.as_view(), name="get-user-image"),
     path("get_image/", views.UserImageView.as_view(), name="get-user-image-2"),
     # =================
