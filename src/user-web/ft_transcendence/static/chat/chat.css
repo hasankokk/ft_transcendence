@@ -1,8 +1,3 @@
-html {
-    height: 100%;
-    margin: 0;
-}
-
 .chat .chat {
     margin-top: auto;
     margin-bottom: auto;
@@ -11,12 +6,12 @@ html {
 .chat .card {
     display: flex;
     height: 500px;
-    border-radius: 15px !important;
-    background-color: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 15px ;
+    background-color: rgba(0, 0, 0, 0.4) ;
 }
 
 .chat .contacts_body {
-    padding: 0.75rem 0 !important;
+    padding: 0.75rem 0 ;
     overflow-y: auto;
     white-space: nowrap;
 }
@@ -26,41 +21,41 @@ html {
 }
 
 .chat .card-header {
-    border-radius: 15px 15px 0 0 !important;
-    border-bottom: 0 !important;
+    border-radius: 15px 15px 0 0 ;
+    border-bottom: 0 ;
 }
 
 .chat .card-footer {
-    border-radius: 0 0 15px 15px !important;
-    border-top: 0 !important;
+    border-radius: 0 0 15px 15px ;
+    border-top: 0 ;
 }
 
 .chat .type_msg {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    border: 0 !important;
-    color: white !important;
-    height: 60px !important;
+    background-color: rgba(0, 0, 0, 0.3) ;
+    border: 0 ;
+    color: white ;
+    height: 60px ;
     overflow-y: auto;
 }
 
 .chat .type_msg:focus {
-    box-shadow: none !important;
-    outline: 0px !important;
+    box-shadow: none ;
+    outline: 0px ;
 }
 
 .chat .send_btn {
-    border-radius: 0 15px 15px 0 !important;
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    border: 0 !important;
-    color: white !important;
+    border-radius: 0 15px 15px 0 ;
+    background-color: rgba(0, 0, 0, 0.3) ;
+    border: 0 ;
+    color: white ;
     cursor: pointer;
 }
 
 .chat .search_btn {
-    border-radius: 0 15px 15px 0 !important;
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    border: 0 !important;
-    color: white !important;
+    border-radius: 0 15px 15px 0 ;
+    background-color: rgba(0, 0, 0, 0.3) ;
+    border: 0 ;
+    color: white ;
     cursor: pointer;
 }
 
@@ -70,9 +65,9 @@ html {
 }
 
 .chat .contacts li {
-    width: 100% !important;
+    width: 100% ;
     padding: 5px 10px;
-    margin-bottom: 15px !important;
+    margin-bottom: 15px ;
 }
 
 .chat .active {
@@ -114,7 +109,7 @@ html {
 }
 
 .chat .offline {
-    background-color: #c23616 !important;
+    background-color: #c23616 ;
 }
 
 .chat .user_info {
@@ -229,6 +224,6 @@ html {
 
 @media(max-width: 576px) {
     .chat .contacts_card {
-        margin-bottom: 15px !important;
+        margin-bottom: 15px ;
     }
 }
