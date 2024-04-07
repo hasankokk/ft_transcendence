@@ -112,8 +112,8 @@ class LoginView(APIView):
                                      'message': _("login successful"),
                                      }
                     response = Response(response_data)
-                    response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
-                    response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
+                    response.set_cookie('refresh_token', str(refresh), secure=True, samesite='Strict', httponly=True)
+                    response.set_cookie('access_token', str(refresh.access_token), secure=True, samesite='Strict')
                     return response
                 else:
                     request.session["attempting_user"] = user.id
@@ -160,7 +160,7 @@ class refreshTokenView(APIView):
         if serializer.is_valid():
             access = serializer.validated_data['access']
             response = Response({'success': True, 'message': _("Refreshed access token")})
-            response.set_cookie('access_token', access, samesite='Strict')
+            response.set_cookie('access_token', access, secure=True, samesite='Strict')
             return response
         else:
             if request.session.get("attempting_user", None) is not None:
@@ -182,7 +182,7 @@ class refreshTokenView(APIView):
         if serializer.is_valid():
             access = serializer.validated_data['access']
             response = Response({'success': True, 'message': _("Refreshed access token")})
-            response.set_cookie('access_token', access, samesite='Strict')
+            response.set_cookie('access_token', access, secure=True, samesite='Strict')
             return response
         else:
             response = Response({'success': False, 'errors': [_("Invalid refresh token")]},
@@ -229,8 +229,8 @@ def oauth_callback(request):
                              #'access': str(refresh.access_token)
                              }
             response = Response(response_data)
-            response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
-            response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
+            response.set_cookie('refresh_token', str(refresh), secure=True, samesite='Strict', httponly=True)
+            response.set_cookie('access_token', str(refresh.access_token), secure=True, samesite='Strict')
             return response
         else:
             response = {'success': False, 'message': _("Incorrect access token")}
@@ -326,8 +326,8 @@ class TwoFactorAuthenticationView(APIView):
                                  'redirect': reverse('home'),
                                  'message': _("Login successful")}
                 response = Response(response_data)
-                response.set_cookie('refresh_token', str(refresh), samesite='Strict', httponly=True)
-                response.set_cookie('access_token', str(refresh.access_token), samesite='Strict')
+                response.set_cookie('refresh_token', str(refresh), secure=True, samesite='Strict', httponly=True)
+                response.set_cookie('access_token', str(refresh.access_token), secure=True, samesite='Strict')
                 return response
             else:
                 return Response({'success': False, 'errors': [form.errors["__all__"]]}, status=status.HTTP_401_UNAUTHORIZED)

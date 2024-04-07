@@ -120,16 +120,14 @@ services:
       - game-web
 
   master-nginx:
-    image: nginx
+    build: src/nginx
     restart: always
-    volumes:
-      - type: bind
-        source: src/nginx/nginx.conf
-        target: /etc/nginx/conf.d/default.conf
     ports:
       - "3600:8000"
     depends_on:
       - user-nginx
+      - game-nginx
+      - chat-nginx
 
 volumes:
   user-postgres:

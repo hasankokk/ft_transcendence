@@ -22,7 +22,7 @@ function pongRoom() {
     }
 
     pongSocket = new WebSocket(
-      "ws://" + window.location.host + "/pong/socket/" + roomName + "/"
+      "wss://" + window.location.host + "/pong/socket/" + roomName + "/"
     );
 
     pongSocket.onopen = function (e) {
