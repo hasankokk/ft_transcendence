@@ -34,4 +34,5 @@ urlpatterns = [
     path("check2/", views.checkuser2, name="user-check2"),
     path("check3/", views.checkuser3, name="user-check3"),
     path("check4/", views.checkuser4, name="user-check4"),
+    path("dummy/", views.dummyscores, name="dummy-scores"),
 ]

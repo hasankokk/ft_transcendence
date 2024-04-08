@@ -3,6 +3,8 @@ from django.db.models import UniqueConstraint
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from datetime import timedelta
 
 def max_player_validator(game_id):
     game = GameHistory.objects.get(pk=game_id)
@@ -10,6 +12,44 @@ def max_player_validator(game_id):
     if game.player_count() >= game.max_players():
         raise ValidationError(_("Game #%(id)s is already full with maximum number of %(max)s players"),
                               params={"id": game_id, "max": game.max_players()})
+
+def extract_query(history, target_user=None):
+    games = list()
+
+    for match in history:
+        game = dict()
+        
+        game["id"] = match.pk
+        game["date"] = match.date
+        game["length"] = match.length
+        game["type"] = GameHistory.GameType(match.type).name
+
+        players = list()
+        counter = 1
+
+        for user in match.gamehistoryuser_set.all():
+            player = dict()
+
+            player["id"] = user.user.username
+            player["total_score"] = user.total_score
+            player["wins"] = user.wins
+            player["place"] = counter
+
+            if target_user is not None and user.user.pk == target_user:
+                game["target_player"] = player
+
+                if counter == 1:
+                    game["target_player"]["has_won"] = True
+                else:
+                    game["target_player"]["has_won"] = False
+
+            counter += 1
+            players.append(player)
+
+        game["players"] = players
+        games.append(game)
+
+    return games
 
 class GameHistoryManager(models.Manager):
     def get_user_history(self, user_id, last=10):
@@ -44,6 +84,47 @@ class GameHistoryManager(models.Manager):
             records = records[0:last]
 
         return GameHistory.objects.filter(pk__in=records.values("game"))
+
+    def create_dummy_scores(self):
+        if GameHistory.objects.count() != 0:
+            return
+
+        current_tz = timezone.get_current_timezone()
+        
+        self.game1 = GameHistory.objects.create(date=timezone.datetime(year=2010,
+                                                                       month=1,
+                                                                       day=1,
+                                                                       tzinfo=current_tz),
+                                                length=timedelta(minutes=5),
+                                                type=GameHistory.GameType.ONEVONE)
+        self.game2 = GameHistory.objects.create(date=timezone.now(),
+                                                length=timedelta(seconds=30),
+                                                type=GameHistory.GameType.TOURNAMENT)
+
+        self.user1 = get_user_model().objects.create_user(username="user1", email="user1@mail.com", password="x")
+        self.user2 = get_user_model().objects.create_user(username="user2", email="user2@mail.com", password="x")
+        self.user3 = get_user_model().objects.create_user(username="user3", email="user3@mail.com", password="x")
+        self.user4 = get_user_model().objects.create_user(username="user4", email="user4@mail.com", password="x")
+
+        self.guser1_1 = GameHistoryUser.objects.create(game=self.game1, user=self.user1, total_score=25, wins=1)
+        self.guser1_2 = GameHistoryUser.objects.create(game=self.game1, user=self.user2, total_score=10, wins=0)
+
+        self.guser2_1 = GameHistoryUser.objects.create(game=self.game2, user=self.user1, total_score=200, wins=4)
+        self.guser2_2 = GameHistoryUser.objects.create(game=self.game2, user=self.user2, total_score=185, wins=2)
+        self.guser2_3 = GameHistoryUser.objects.create(game=self.game2, user=self.user3, total_score=32, wins=1)
+        self.guser2_4 = GameHistoryUser.objects.create(game=self.game2, user=self.user4, total_score=50, wins=0)
+
+        self.game3 = GameHistory.objects.create(date=timezone.now(),
+                                                length=timedelta(hours=1),
+                                                type=GameHistory.GameType.ONEVONE)
+        self.game4 = GameHistory.objects.create(date=timezone.now(),
+                                                length=timedelta(minutes=15),
+                                                type=GameHistory.GameType.TOURNAMENT)
+
+        GameHistoryUser.objects.create(game=self.game3, user=self.user1, total_score=15, wins=0)
+        GameHistoryUser.objects.create(game=self.game4, user=self.user1, total_score=16, wins=1)
+        GameHistoryUser.objects.create(game=self.game4, user=self.user2, total_score=17, wins=0)
+        GameHistoryUser.objects.create(game=self.game4, user=self.user3, total_score=18, wins=0)
 
 class GameHistory(models.Model):
 

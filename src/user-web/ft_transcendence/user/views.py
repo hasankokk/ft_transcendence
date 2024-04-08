@@ -31,6 +31,7 @@ import requests # is this necessary?
 from . import forms
 from . import serializers
 from user.models import UserRelationship
+from game.models import GameHistory, extract_query
 
 TOKEN_URL = "https://api.intra.42.fr/oauth/token"
 AUTHORIZATION_URL = "https://api.intra.42.fr/oauth/authorize"
@@ -148,7 +149,8 @@ def profileView(request, target_id = None):
     else:
         user = get_object_or_404(get_user_model(), id=target_id)
 
-    context = {"user" : user }
+    history = extract_query(GameHistory.objects.get_user_history(user.pk), user.pk)
+    context = {"target_user" : user, "ranking": history}
     return render(request, "user/profile.html", context)
         
 
@@ -442,3 +444,8 @@ def checkuser4(request):
         return HttpResponse("request.user.is_authenticated\n request.user.username: " + str(request.user.username))
     else:
         return HttpResponse("NOT request.user.is_authenticated\n request.user.username: " + str(request.user.username), status="401")
+
+@api_view(['PUT'])
+def dummyscores(request):
+    GameHistory.objects.create_dummy_scores()
+    return HttpResponse()

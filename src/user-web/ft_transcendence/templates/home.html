@@ -131,4 +131,10 @@
     {% endif %}
 </div>
 
+<div>
+    <button id="dummyButton" onclick="fetch('{% url 'user:dummy-scores' %}', {method: 'PUT'}); return false;">
+        Create Dummies
+    </button>
+</div>
+
 {% include 'eoc.html' %}

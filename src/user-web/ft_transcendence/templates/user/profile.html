@@ -7,13 +7,14 @@
           <div class="col-lg-4">
             <div class="card mb-4 l-bg-cherry">
               <div class="card-body text-center">
-                <img src="{% url 'user:get-user-image' user_id=user.pk %}" alt="avatar"
+                <img src="{% url 'user:get-user-image' user_id=target_user.pk %}" alt="avatar"
                   class="rounded-circle img-fluid" style="width: 150px;">
-                <h5>{{ user.username }}</h5>
+                <h5>{{ target_user.username }}</h5>
                 <p class="mb-1 text-info">Full Stack Developer for </p>
                 <p class="mb-4 text-info">Bay Area, Turkey, TR</p>
                 <div class="d-flex justify-content-center mb-2">
                   <button type="button" class="btn btn-outline-primary">Message</button>
+                  {% if user.pk == target_user.pk %}
                   <button type="button" class="btn btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#editProfile"> 
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                       class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -26,6 +27,7 @@
                     </svg>
                     Edit Profile
                   </button>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -40,7 +42,7 @@
                     <p class="text-danger mb-0">Full Name</p>
                   </div>
                   <div class="col-sm-9">
-                    <p class="mb-0">{{ user.username }}</p>
+                    <p class="mb-0">{{ target_user.username }}</p>
                   </div>
                 </div>
                 <hr>
@@ -84,26 +86,39 @@
           </div>
           <!-- END::PROFILE VIEW RIGHT SIDE -->
           <!-- BEGIN::PROFILE VIEW ACCORDION -->
-          <div class="accordion l-bg-cherry" id="profileAccordion">
+          <div class="accordion" id="profileAccordion">
+
+            {% for game in ranking %}
+
             <div class="accordion-item l-bg-cherry">
               <h2 class="accordion-header l-bg-cherry">
-                <button class="accordion-button d-block text-center d-block text-center l-bg-cherry text-danger"
-                  type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
-                  aria-controls="collapseOne">
-                  Accordion Item #1
+                <button class="accordion-button d-block text-center d-block text-center l-bg-cherry text-danger collapsed"
+                  type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ game.id }}" aria-expanded="false"
+                  aria-controls="collapse_{{ game.id }}">
+                  score {{ game.target_player.total_score }} type {{ game.type }} has_won? {{ game.target_player.has_won }}
+                  {% if game.type == "TOURNAMENT" %}
+                  placed at: {{ game.target_player.place }}
+                  {% endif %}
                 </button>
               </h2>
-              <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#profileAccordion">
+              <div id="collapse_{{ game.id }}" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
                 <div class="accordion-body">
-                  <strong>This is the first item's accordion body.</strong> It is shown by default,
-                  until the collapse plugin adds the appropriate classes that we use to style each
-                  element. These classes control the overall appearance, as well as the showing and
-                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
-                  our default variables. It's also worth noting that just about any HTML can go within
-                  the <code>.accordion-body</code>, though the transition does limit overflow.
+                  this is game {{ game.id }}, occured at {{ game.date }}, lasted for {{ game.length }}.
+                  <ul>
+                    {% for player in game.players %}
+                    <li>
+                      id {{ player.id }}
+                      total_score {{ player.total_score }}
+                      wins {{ player.wins }}
+                    </li>
+                    {% endfor %}
+                  </ul>
                 </div>
               </div>
             </div>
+
+            {% endfor %}
+
             <div class="accordion-item l-bg-cherry">
               <h2 class="accordion-header l-bg-cherry">
                 <button class="accordion-button d-block text-center l-bg-cherry text-danger collapsed " type="button"
