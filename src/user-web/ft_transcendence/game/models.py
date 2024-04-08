@@ -30,7 +30,8 @@ def extract_query(history, target_user=None):
         for user in match.gamehistoryuser_set.all():
             player = dict()
 
-            player["id"] = user.user.username
+            player["id"] = user.user.pk
+            player["username"] = user.user.username
             player["total_score"] = user.total_score
             player["wins"] = user.wins
             player["place"] = counter

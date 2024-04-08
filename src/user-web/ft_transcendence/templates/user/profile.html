@@ -86,6 +86,13 @@
           </div>
           <!-- END::PROFILE VIEW RIGHT SIDE -->
           <!-- BEGIN::PROFILE VIEW ACCORDION -->
+
+          {% if ranking|length == 0 %}
+          <div role="alert" class="alert alert-warning">
+            No matches has been recorded for player {{ user.username }}
+          </div>
+          {% endif %}
+
           <div class="accordion" id="profileAccordion">
 
             {% for game in ranking %}
@@ -95,9 +102,11 @@
                 <button class="accordion-button d-block text-center d-block text-center l-bg-cherry text-danger collapsed"
                   type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ game.id }}" aria-expanded="false"
                   aria-controls="collapse_{{ game.id }}">
-                  score {{ game.target_player.total_score }} type {{ game.type }} has_won? {{ game.target_player.has_won }}
+                  score {{ game.target_player.total_score }}, type {{ game.type }},
                   {% if game.type == "TOURNAMENT" %}
                   placed at: {{ game.target_player.place }}
+                  {% else %}
+                  has_won? {{ game.target_player.has_won }}
                   {% endif %}
                 </button>
               </h2>
@@ -107,7 +116,7 @@
                   <ul>
                     {% for player in game.players %}
                     <li>
-                      id {{ player.id }}
+                      <a href="{% url 'user:target-profile' target_id=player.id %}">{{ player.username }}</a>
                       total_score {{ player.total_score }}
                       wins {{ player.wins }}
                     </li>
@@ -119,44 +128,6 @@
 
             {% endfor %}
 
-            <div class="accordion-item l-bg-cherry">
-              <h2 class="accordion-header l-bg-cherry">
-                <button class="accordion-button d-block text-center l-bg-cherry text-danger collapsed " type="button"
-                  data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
-                  aria-controls="collapseTwo">
-                  Accordion Item #2
-                </button>
-              </h2>
-              <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
-                <div class="accordion-body">
-                  <strong>This is the second item's accordion body.</strong> It is hidden by default,
-                  until the collapse plugin adds the appropriate classes that we use to style each
-                  element. These classes control the overall appearance, as well as the showing and
-                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
-                  our default variables. It's also worth noting that just about any HTML can go within
-                  the <code>.accordion-body</code>, though the transition does limit overflow.
-                </div>
-              </div>
-            </div>
-            <div class="accordion-item l-bg-cherry">
-              <h2 class="accordion-header l-bg-cherry">
-                <button class="accordion-button d-block text-center l-bg-cherry text-danger collapsed" type="button"
-                  data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
-                  aria-controls="collapseThree">
-                  Accordion Item #3
-                </button>
-              </h2>
-              <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
-                <div class="accordion-body">
-                  <strong>This is the third item's accordion body.</strong> It is hidden by default,
-                  until the collapse plugin adds the appropriate classes that we use to style each
-                  element. These classes control the overall appearance, as well as the showing and
-                  hiding via CSS transitions. You can modify any of this with custom CSS or overriding
-                  our default variables. It's also worth noting that just about any HTML can go within
-                  the <code>.accordion-body</code>, though the transition does limit overflow.
-                </div>
-              </div>
-            </div>
           </div>
           <!-- END::PROFILE VIEW ACCORDION -->
         </div>
@@ -184,3 +155,5 @@
   </div>
 </div>
 <!-- END::EDIT PROFILE MODAL -->
+
+{% include 'eoc.html' %}
