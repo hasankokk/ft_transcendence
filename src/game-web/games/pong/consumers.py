@@ -77,6 +77,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
             players[p] = {
                 "is_ready": user.is_ready,
                 "is_playing": user.is_playing,
+                "is_owner": user.is_owner,
                 "pos_x": user.position.x,
                 "pos_y": user.position.y,
                 "vel": user.velocity,
@@ -110,6 +111,14 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
 
         if to_up is not None and isinstance(to_up, bool):
             await GamePool()[self.room_name].move_player(username, to_up)
+
+    async def pong_setting(self, event):
+        username = event["username"]
+        game = GamePool()[self.room_name]
+        player = game[username]
+
+        if player is not None and player.is_owner:
+            game.update_settings(event["settings"])
 
     async def chat_message(self, event):
         username = event["username"]

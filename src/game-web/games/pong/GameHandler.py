@@ -14,7 +14,9 @@ class Player:
         
         self.is_ready = False
         self.is_playing = False
+        self.is_owner = False
         self.times_played = 0
+        self.last_action = time()
 
         self.def_position = abs(Vector2D(board_size.x / 2 - paddle_size.x, 0))
         self.position = copy.copy(self.def_position)
@@ -25,19 +27,24 @@ class Player:
         self.wins = 0
 
     def reset_game_variables(self):
+        """Reset variables while starting a match"""
         self.position = copy.copy(self.def_position)
         self.is_ready = False
 
     def toggle_position_x(self):
         self.position.x = -self.position.x
 
-    def move(self, to_up : bool, factor):
+    def move(self, to_up : bool, factor, player_margin):
         direction = 1 if to_up else -1
-        
-        self.position.y += direction * factor * self.velocity
+
+        tmp = self.position.y + direction * factor * self.velocity
+        if abs(tmp) > player_margin.y:
+            self.position.y = player_margin.y * direction
+        else:
+            self.position.y = tmp
 
 class Ball:
-    def __init__(self, board_size: Vector2D, paddle_size: Vector2D,
+    def __init__(self, board_size: Vector2D, player_margin: Vector2D,
                  radius, velocity: tuple, position=(0.0,0.0)):
 
         self.def_position = Vector2D(position[0], position[1])
@@ -47,18 +54,20 @@ class Ball:
 
         self.radius = abs(radius)
 
-        self.bounce_margin = Vector2D(board_size.x / 2 - self.radius - paddle_size[0],
-                                      board_size.y / 2 - self.radius)
+        self.update_margin(board_size, player_margin)
 
-        self.score_margin = board_size.x / 2 - self.radius - paddle_size[0] / 2
+    def update_margin(self, board_size, player_margin):
+        self.bounce_margin = Vector2D(player_margin.x - self.radius,
+                                      board_size.y / 2 - self.radius)
+        self.score_marginx = player_margin.x
 
     def reset_game_variables(self):
-        """Reset variables to default"""
+        """Reset position and velocity to default"""
         self.position = copy.copy(self.def_position)
         self.velocity = copy.copy(self.def_velocity)
 
     def reset(self):
-        """Reset ball based on last score"""
+        """Reset ball and its direction based on last score"""
         pos_x = self.position.x
         self.reset_game_variables()
 
@@ -80,7 +89,7 @@ class Ball:
         
         if self.bounce_margin.x < pos_x:
 
-            if pos_x < self.score_margin:
+            if pos_x < self.score_marginx:
                 if paddle_range[0] < self.position.y < paddle_range[1]:
                     self.velocity.x = -self.velocity.x
                 return True
@@ -109,22 +118,34 @@ class Game:
         self.current_players = tuple() # 1V1 players when game is active
         self.channels = {} # Connected players
         self.status = GameState.PENDING
-        self.type = type
         self.time_started = time() # Dummy default
         self.time_elapsed = time() # Dummy default
-        self.time_max = time_max
         self.task = set()
+
+        self.set_type(type)
+        self.time_max = time_max
 
         self.board_size = abs(Vector2D(board_size[0], board_size[1]))
         self.paddle_size = abs(Vector2D(paddle_size[0], paddle_size[1]))
-
-        self.ball = Ball(self.board_size, self.paddle_size,
+        self.update_player_margin(is_init=True)
+        self.ball = Ball(self.board_size, self.player_margin,
                          radius=ball_radius, velocity=ball_velocity)
 
+    def set_type(self, type : GameType):
+        self.type = type
         if self.type == GameType.TOURNAMENT:
             self.max_players = 4
         else:
             self.max_players = 2
+
+    def set_ball(self, radius, velocity):
+        self.ball = Ball(self.board_size, self.player_margin,
+                         radius=radius, velocity=velocity)
+
+    def update_player_margin(self, is_init=False):
+        self.player_margin = (self.board_size - self.paddle_size) * 0.5
+        if not is_init:
+            self.ball.update_margin(self.board_size, self.player_margin)
 
     def add_player(self, channel_name, username, **kwargs) -> bool:
         if username in self.players and \
@@ -136,6 +157,8 @@ class Game:
         elif GamePool.find_user(username) is None:
             player = Player(self.board_size, self.paddle_size,
                             **kwargs)
+            if len(self.players) == 0:
+                player.is_owner = True
             self.players[username] = player
             self.channels[username] = channel_name
             return True
@@ -148,6 +171,32 @@ class Game:
     def remove_channel(self, username : str):
         self.players[username].is_ready = False
         self.channels.pop(username, None)
+
+    def update_settings(self, settings):
+        # if request from user who is_owner and game state is PENDING
+        #   confirm settings has all required fields, then update
+
+        if self.status == GameState.PENDING:
+            for s in settings:
+                if s == "board_size":
+                    board_size : tuple[float, float] = settings[s]
+                    self.board_size = abs(Vector2D(board_size[0], board_size[1]))
+                    self.update_player_margin()
+                elif s == "paddle_size":
+                    paddle_size : tuple[float, float] = settings[s]
+                    self.paddle_size = abs(Vector2D(paddle_size[0], paddle_size[1]))
+                    self.update_player_margin()
+                elif s == "timemax":
+                    self.time_max = int(settings[s])
+                elif s == "type":
+                    gtype = GameType.TOURNAMENT if settings[s] == "TOURNAMENT" else GameType.ONEVONE
+                    self.set_type(gtype)
+                elif s == "ball_radius":
+                    rad = float(settings[s])
+                    self.set_ball(radius=rad, velocity=self.ball.def_velocity)
+                elif s == "ball_velocity":
+                    vel = float(settings[s])
+                    self.set_ball(radius=self.ball.radius, velocity=vel)
 
     def is_active(self):
         return self.status == GameState.ACTIVE
@@ -166,6 +215,7 @@ class Game:
             self.players[user].reset_game_variables()
             self.players[user].total_score = 0
             self.players[user].wins = 0
+            self.players[user].times_played = 0
 
     async def toggle_ready(self, username):
         if self.status != GameState.PENDING:
@@ -179,10 +229,12 @@ class Game:
             task.add_done_callback(self.task.discard)
 
     async def move_player(self, username, to_up : bool):
-        t_delta = time() - self.time_elapsed
+        now = time()
+        t_delta = now - self.players[username].last_action
 
-        if t_delta > 10e-3: # 10ms
-            self.players[username].move(to_up, 0.1)
+        if t_delta > 10e-3: # 5ms
+            self.players[username].move(to_up, 0.1, self.player_margin)
+            self.players[username].last_action = now
 
 
     def __str__(self):
@@ -197,17 +249,31 @@ class Game:
     def __len__(self):
         return len(self.channels)
 
-    def pair_select(self, loop_count) -> None | tuple[str, str]:
+    def pair_select(self, pl_list, loop_count) -> None | tuple[str, str]: 
         # match players with lowest number of times_played and wins
-        pass
+        
+        if loop_count >= self.max_players:
+            return None
+        
+        pair : list[str] = list()
+
+        for pl in pl_list:
+            if self.players[pl].times_played == loop_count:
+                if len(pair) == 0:
+                    pair.append(pl)
+                elif self.players[pair[0]].wins == self.players[pl].wins:
+                    pair.append(pl)
+
+        random.shuffle(pair)
+        return (pair[0], pair[1])
 
     def paddle_range(self, players) -> tuple[float, float]:
         if self.ball.position.x > 0:
-            min = self.players[players[0]].position.y - self.paddle_size.y / 2
-            max = self.players[players[0]].position.y + self.paddle_size.y / 2
-        else:
             min = self.players[players[1]].position.y - self.paddle_size.y / 2
             max = self.players[players[1]].position.y + self.paddle_size.y / 2
+        else:
+            min = self.players[players[0]].position.y - self.paddle_size.y / 2
+            max = self.players[players[0]].position.y + self.paddle_size.y / 2
 
         return (min, max)
     
@@ -229,11 +295,12 @@ class Game:
         else:
             loop_count = 0
             while not all([self.players[user].times_played < 2 for user in pl_list]):
-                pair = self.pair_select(loop_count)
+                pair = self.pair_select(pl_list, loop_count)
                 if pair is not None:
                     await self.startMatch(pair)
                 else:
                     raise PairNotFound()
+                loop_count += 1
         
         self.status = GameState.FINISHED
         await asyncio.sleep(10)
@@ -256,7 +323,7 @@ class Game:
             await self.cycle(players)
             if self.time_elapsed - self.time_started > self.time_max:
                 self.status = GameState.LOOP_ENDED
-            await asyncio.sleep(25e-3) # 25ms
+            await asyncio.sleep(11e-3) # 25ms
 
         for p in players:
             self.players[p].times_played += 1
@@ -269,7 +336,6 @@ class Game:
             self.players[players[1]].wins += 1
 
         self.current_players = ()
-        print("MATCH FINISHED") # DEBUG
 
     async def cycle(self, players):
         t_delta = time() - self.time_elapsed
