@@ -20,13 +20,10 @@ services:
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py collectstatic --no-input &&
-             gunicorn -b \'0.0.0.0:8002\' --reload ft_transcendence.wsgi \
-             --reload-extra-file templates/ --reload-extra-file user/templates/ \
-             --reload-extra-file templates/user/ "
+             gunicorn -b \'0.0.0.0:8002\' ft_transcendence.wsgi"
     volumes:
-      - type: bind
-        source: src/user-web/ft_transcendence
-        target: /code
+      - user-static:/code/staticfiles
+      - user-media:/code/media
     expose:
       - "8002"
     depends_on:
@@ -37,49 +34,39 @@ services:
       - POSTGRES_DB=ft_transcendence
       - POSTGRES_USER=ecole
       - POSTGRES_PASSWORD=super_secret_password
+      - JWT_KEY=verysecretkey
 
   user-nginx:
-    image: nginx
+    build: src/user-web/nginx
     restart: always
     volumes:
-      - type: bind
-        source: src/user-web/nginx.conf
-        target: /etc/nginx/conf.d/default.conf
-      - type: bind
-        source: src/user-web/ft_transcendence/staticfiles
-        target: /data/static
-      - type: bind
-        source: src/user-web/ft_transcendence/media
-        target: /data/media
+      - user-static:/data/static
+      - user-media:/data/media
     expose:
       - "8001"
     depends_on:
       - user-web
+
+  chat-redis:
+    image: redis:7
+    restart: always
+    expose:
+      - "6379"
 
   chat-web:
     build: src/chat-web
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             python manage.py collectstatic --no-input &&
-             gunicorn -b \'0.0.0.0:8002\' --reload chat.wsgi --reload-extra-file templates/"
-    volumes:
-      - type: bind
-        source: src/chat-web/chat
-        target: /code
+             daphne -b 0.0.0.0 -p 8002 chat.asgi:application"
     expose:
       - "8002"
+    depends_on:
+      - chat-redis
 
   chat-nginx:
-    image: nginx
+    build: src/chat-web/nginx
     restart: always
-    volumes:
-      - type: bind
-        source: src/chat-web/nginx.conf
-        target: /etc/nginx/conf.d/default.conf
-      - type: bind
-        source: src/chat-web/chat/staticfiles
-        target: /data/static
     expose:
       - "8001"
     depends_on:
@@ -96,24 +83,15 @@ services:
     command: >
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
-             python manage.py collectstatic --no-input &&
              daphne -b 0.0.0.0 -p 8002 games.asgi:application"
-    volumes:
-      - type: bind
-        source: src/game-web/games
-        target: /code
     expose:
       - "8002"
     depends_on:
       - game-redis
 
   game-nginx:
-    image: nginx
+    build: src/game-web/nginx
     restart: always
-    volumes:
-      - type: bind
-        source: src/game-web/nginx.conf
-        target: /etc/nginx/conf.d/default.conf
     expose:
       - "8001"
     depends_on:
@@ -131,3 +109,5 @@ services:
 
 volumes:
   user-postgres:
+  user-static:
+  user-media:

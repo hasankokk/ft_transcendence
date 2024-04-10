@@ -46,8 +46,6 @@ INSTALLED_APPS = [
     "game",
     'django_otp',
     'django_otp.plugins.otp_totp',
-    'django_otp.plugins.otp_hotp',
-    'django_otp.plugins.otp_static',
     'django_otp.plugins.otp_email',
 ]
 
@@ -94,7 +92,6 @@ DATABASES = {
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         "HOST": "user-db",
         "PORT": 5432,
-        #"NAME": BASE_DIR / "db.sqlite3",
     }
 }
 

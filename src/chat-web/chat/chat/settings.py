@@ -35,6 +35,7 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:3600"]
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -61,7 +62,7 @@ ROOT_URLCONF = "chat.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -75,7 +76,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "chat.wsgi.application"
+ASGI_APLLICATION = "chat.asgi.application"
 
+# Channel Layers (DJANGO CHANNELS)
+CHANNEL_LAYERS = {
+    "default" : {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("chat-redis", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -123,8 +134,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles") # if enabled, add "python manage.py collectstatic --no-input" in docker-compose
 
