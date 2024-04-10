@@ -1,6 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from ClientHandler import ClientPool
+from chatapp.ClientHandler import ClientPool
 
 import json
 import re
@@ -19,7 +19,7 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        self.accept()
+        await self.accept()
 
     async def disconnect(self, close_code):
 
@@ -47,7 +47,7 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
 
             await self.channel_layer.group_send(room, data)
         else:
-            await self.channel_layer.send(data)
+            await self.channel_layer.send(self.channel_name, data)
 
     async def chat_message(self, event):
         username = event["username"]

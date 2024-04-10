@@ -8,10 +8,12 @@
 }
 
 body {
-  min-height: 100vh;
   background: url("background.jpg") no-repeat;
-  background-size: cover;
-  background-position: center;
+  background-size: 100% 100vh;
+}
+
+#main-content {
+  max-height: 85vh;
 }
 
 .card {

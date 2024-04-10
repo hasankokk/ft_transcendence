@@ -71,6 +71,10 @@ function bindChat() {
   chatFunction();
 }
 
+function bindChatRoom() {
+  chatRoom();
+}
+
 function bindPongRoom() {
   pongRoom();
 }

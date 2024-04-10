@@ -3,6 +3,7 @@ const funcMap = {
   Login: bindLogin,
   Games: bindGame,
   Chat: bindChat,
+  ChatRoom: bindChatRoom,
   PongRoom: bindPongRoom,
   Ranking: bindRanking,
   Profile: bindProfile,
