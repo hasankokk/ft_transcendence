@@ -14,6 +14,7 @@ const main_content = document.getElementById("main-content");
 let bindFunc;
 let chatSocket;
 let pongSocket;
+let onGamePage = false;
 const observer = new MutationObserver(function (mutations) {
   for (const mutation of mutations) {
     console.log(mutation); // DEBUG

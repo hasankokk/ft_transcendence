@@ -88,7 +88,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
 
         data = {
             "status": game.status,
-            "type": game.type,
+            "game_type": game.type,
             "max_players": game.max_players,
             "ball": ball_data,
             "board_size": (game.board_size.x, game.board_size.y),
@@ -99,7 +99,9 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
             "max_seconds": game.time_max,
         }
 
-        await self.send(text_data=json.dumps({"type": "pong.status", "message": json.dumps(data)}))
+        data["type"] = "pong.status"
+
+        await self.send(text_data=json.dumps(data))
 
     async def pong_ready(self, event):
         username = event["username"]
@@ -126,7 +128,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
         prefix = username + "@" + room + ": "
         message = event["message"]
 
-        await self.send(text_data=json.dumps({"message": prefix + message}))
+        await self.send(text_data=json.dumps({"type": "chat.message", "message": prefix + message}))
 
     async def chat_command(self, event):
         username = event["username"]
@@ -152,4 +154,4 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
                         info += room + ": " + "None" + "; "
 
         response = msg_prefix + message + "\n" + info_prefix + info
-        await self.send(text_data=json.dumps({"message": response}))
+        await self.send(text_data=json.dumps({"type": "chat.command", "message": response}))

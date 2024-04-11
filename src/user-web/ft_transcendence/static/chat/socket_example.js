@@ -37,9 +37,8 @@ function pongRoom() {
     };
 
     pongSocket.onmessage = function (e) {
-      const data = JSON.parse(e.data);
-      if (("type" in data) & (data.type === "pong.status")) {
-        const info = JSON.parse(data.message);
+      const info = JSON.parse(e.data);
+      if (("type" in info) & (info.type === "pong.status")) {
         document.querySelector("#pong-ping-log").value = JSON.stringify(
           info,
           null,
@@ -59,7 +58,7 @@ function pongRoom() {
         }
       } else {
         document.querySelector("#pong-message-log").value +=
-          data.message + "\n";
+          info.message + "\n";
       }
     };
 

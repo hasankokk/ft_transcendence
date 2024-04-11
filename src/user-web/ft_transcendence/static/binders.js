@@ -77,6 +77,7 @@ function bindChatRoom() {
 
 function bindPongRoom() {
   pongRoom();
+  window.pong_start();
 }
 
 function bindAnchor(anchorInstance, func) {
@@ -120,8 +121,14 @@ function loadContent(anchorInstanceOrPath, pushHistory = true) {
         const state = getState(requestUrl, bindFunc);
         history.pushState(state, "", "");
       }
-      closeSocket(pongSocket);
       element.innerHTML = text;
+
+      if (requestUrl !== "/chat/pong") {
+        closeSocket(pongSocket);
+        onGamePage = true;
+      } else {
+        onGamePage = false;
+      }
     });
   checkUserSession();
   return false;

@@ -82,41 +82,54 @@ function pong_start()
     pong_update();
 }
 
-function pong_update()
-{
+function pong_update() {
+  if (onGamePage) {
     requestAnimationFrame(pong_update);
+  }
+  if (typeof pongSocket === "undefined") {
+    // Pong odasına bağlanılmamış
+  } else if (pongSocket.readyState === WebSocket.CLOSED) {
+    // Pong odasına bağlanılmamış
+  } else if (pongSocket.readyState === WebSocket.OPEN) {
+    // Pong soketi bağlanmış
     player_move();
     player_length();
-    if (ball.ball_is_move == 0)
-    {
-        ball_move();
+    if (ball.ball_is_move == 0) {
+      ball_move();
     }
     //floor.rotation.x += 0.01;
     //console.log(floor.rotation.x);
     console.log(player_1.player_model.position);
     render.render(scene, camera);
+  }
 }
 
 //---------default---------
 function create_scene()
 {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
 
-    render = new THREE.WebGLRenderer();
-    render.setSize( window.innerWidth, window.innerHeight );
-    document.getElementById("webgl").appendChild(render.domElement);
+  render = new THREE.WebGLRenderer({ alpha: true });
+  render.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById("webgl").appendChild(render.domElement);
+  scene.background = new THREE.Color(0xffffff); // Beyaz arka plan
+  scene.background = null; // Arka planı temizle (saydam yap)
+  render.shadowMap.enabled = true;
+  render.shadowMap.type = THREE.PCFSoftShadowMap;
+  camera.position.x = 0;
+  camera.position.y = 6.4;
+  camera.position.z = 0;
 
-    render.shadowMap.enabled = true;
-    render.shadowMap.type = THREE.PCFSoftShadowMap;
-    camera.position.x = 0;
-    camera.position.y = 10;
-    camera.position.z = 0;
-
-    camera.rotation.x = -Math.PI / 2; //radyan cinsinden döndürdüm
-    camera.rotation.y = 0;
-    camera.rotation.z = Math.PI / 2; //radyan cinsinden döndürdüm
-    //camera.lookAt(new THREE.Vector3(0, 0, 0));
+  camera.rotation.x = -Math.PI / 2; //radyan cinsinden döndürdüm
+  camera.rotation.y = 0;
+  camera.rotation.z = Math.PI / 2; //radyan cinsinden döndürdüm
+  //camera.lookAt(new THREE.Vector3(0, 0, 0));
 }
 
 //---------light---------
