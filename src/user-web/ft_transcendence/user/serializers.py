@@ -15,5 +15,8 @@ class UserPasswordChangeSerializer(serializers.Serializer):
     new_password1 = serializers.CharField(label=_("New Password 1"), max_length=20)
     new_password2 = serializers.CharField(label=_("New Password 2"), max_length=20)
 
+class UserImageSerializer(serializers.Serializer):
+    image = serializers.ImageField(label=_("Avatar"))
+
 class UserPairSerializer(serializers.Serializer):
     receiver = serializers.CharField(label=_("Receiver"))

@@ -27,6 +27,7 @@ from django_otp.plugins.otp_email.models import EmailDevice
 import json
 import logging # is this necessary?
 import requests # is this necessary?
+import os
 
 from . import forms
 from . import serializers
@@ -403,17 +404,37 @@ class UserImageView(APIView):
         
         default_path = settings.MEDIA_URL[1:] + "image/default/user.png"
 
-        if request.user.is_authenticated:
-            if user_id is None:
-                return FileResponse(open(request.user.image, 'rb'))
-            else:
-                try:
-                    target_user = get_user_model().get(pk=user_id)
-                    return FileResponse(open(target_user.image), 'rb')
-                except get_user_model().DoesNotExist:
-                    return FileResponse(open(default_path, 'rb'))
+        if user_id is None:
+            print("USER_ID NOT PROVIDED") # DEBUG
+            return HttpResponse(request.user.image)
         else:
-            return FileResponse(open(default_path, 'rb'))
+            try:
+                target_user = get_user_model().objects.get(pk=user_id)
+                print("USER FOUND") # DEBUG
+                return HttpResponse(target_user.image)
+            except get_user_model().DoesNotExist:
+                print("USER DOES NOT EXIST") # DEBUG
+                return HttpResponse(default_path)
+
+    def put(self, request):
+        if not request.user.is_authenticated:
+            return Response({"success": "False", "errors": [_("Unauthenticated user")]})
+
+        default_path = settings.MEDIA_URL[1:] + "image/default/user.png"
+
+        data = JSONParser().parse(request)
+        serializer = serializers.UserImageSerializer(data=data)
+
+        if serializer.is_valid():
+
+            old_ipath = request.user.image.path
+            if old_ipath != default_path:
+                if os.path.exists(old_ipath):
+                    os.remove(old_ipath)
+
+            request.user.image = serializer.validated_data["image"]
+            request.user.save()
+            return Response({"success": True, "message": "Successfuly updated user image"})
 
 # =================
 #  Views for debug

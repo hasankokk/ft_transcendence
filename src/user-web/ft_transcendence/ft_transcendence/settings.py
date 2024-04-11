@@ -29,7 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'user-web']
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3600"]
+CSRF_TRUSTED_ORIGINS = ["https://localhost:3600"]
 
 # Application definition
 
@@ -207,7 +207,7 @@ SIMPLE_JWT = {
 
 OAUTH_CLIENT_ID = 'u-s4t2ud-1307345cd5a5be6583103bff9605a1c46c7af530dc5ca717f5dc1687b2f147f4'
 OAUTH_CLIENT_SECRET = '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'
-OAUTH_REDIRECT_URI = 'http://localhost:3600/user/oauth-callback/'
+OAUTH_REDIRECT_URI = 'https://localhost:3600/user/oauth-callback/'
 
 # Email settings
 
