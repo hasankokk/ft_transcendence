@@ -65,7 +65,117 @@ function bindGame() {
 
 function bindRanking() {}
 
-function bindProfile() {}
+function bindProfile() {
+  document
+    .getElementById("profilePhotoForm")
+    .addEventListener("submit", function (event) {
+      event.preventDefault(); // Formun normal submit işlemi engellenir.
+
+      const fileInput = document.getElementById("profilePhoto");
+      if (fileInput.files.length === 0) {
+        alert("Please select a file to upload.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", fileInput.files[0]); // 'image' yerine sunucu tarafında beklenen alan adını kullanın.
+
+      fetchWithJWT("/user/get_image/", {
+        // API endpoint'inizi doğru yolla güncelleyin.
+        method: "PUT",
+        body: formData,
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw response;
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success) {
+            alert("Profile photo updated successfully!");
+          } else {
+            if (data.errors) {
+              alert(
+                "Failed to update profile photo: " + data.errors.join(", ")
+              );
+            } else {
+              alert("Failed to update profile photo: Unknown error");
+            }
+          }
+        })
+        .catch((error) => {
+          error
+            .json()
+            .then((errData) => {
+              if (errData && errData.errors) {
+                console.error(
+                  "Error updating profile photo:",
+                  errData.errors.join(", ")
+                );
+              } else {
+                console.error(
+                  "Error updating profile photo: Failed to parse error message"
+                );
+              }
+            })
+            .catch(() => {
+              console.error(
+                "Error updating profile photo: Network or parse error"
+              );
+            });
+        });
+    });
+
+  document
+    .getElementById("changePassword")
+    .addEventListener("submit", function (event) {
+      event.preventDefault();
+      const oldPassword = document.getElementById("oldPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      fetchWithJWT("/user/change-password/", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          old_password: oldPassword,
+          new_password1: newPassword,
+          new_password2: confirmPassword,
+        }),
+      })
+        .then((response) => {
+          if (response.success) {
+            alert("Password changed successfully!");
+          } else {
+            alert("Failed to change password: " + response.errors.join(", "));
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    });
+
+  document
+    .getElementById("deleteProfile")
+    .addEventListener("click", function () {
+      if (
+        confirm(
+          "Are you sure you want to delete your profile? This action cannot be undone."
+        )
+      ) {
+        fetchWithJWT("/user/delete-account/", {
+          method: "DELETE",
+        })
+          .then(() => {
+            window.location.href = "/home"; // Redirect to home page after deletion
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    });
+}
 
 function bindChat() {
   chatFunction();

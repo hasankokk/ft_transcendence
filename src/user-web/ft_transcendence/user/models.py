@@ -10,7 +10,7 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 import os
 
 class UserManager(BaseUserManager):
-    
+
     def create_user(self, username, email, password, **extra_fields):
 
         if not username:
@@ -36,7 +36,7 @@ class UserManager(BaseUserManager):
             raise ValueError(_('Superuser must be assigned to is_staff=True'))
         if extra_fields.get('is_superuser') != True:
             raise ValueError(_('Superuser must be assigned to is_superuser=True'))
-        
+
         return self.create_user(username, email, password, **extra_fields)
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -56,6 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                               default="image/default/user.png")
     is_42authenticated = models.BooleanField(_('is user authenticated by 42'), default=False)
     two_fa_auth_type = models.IntegerField(choices=TwoFAType, default=TwoFAType.NONE)
+    #profile_image = models.URLField(_('profile image URL'), null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -87,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             raise Exception("Adding other devices is not implemented")
 
         return None
-        
+
     def remove_otp_device(self):
         if self.two_fa_auth_type == self.TwoFAType.EMAIL:
             EmailDevice.objects.devices_for_user(user=self).delete()

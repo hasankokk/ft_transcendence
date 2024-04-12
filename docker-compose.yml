@@ -20,16 +20,14 @@ services:
       sh -c "python manage.py makemigrations &&
              python manage.py migrate &&
              python manage.py collectstatic --no-input &&
-             gunicorn -b \'0.0.0.0:8002\' ft_transcendence.wsgi"
+             gunicorn -b '0.0.0.0:8002' ft_transcendence.wsgi"
     volumes:
       - user-static:/code/staticfiles
       - user-media:/code/media
     expose:
       - "8002"
     depends_on:
-      user-db:
-        condition: service_healthy
-        restart: true
+      - user-db
     environment:
       - POSTGRES_DB=ft_transcendence
       - POSTGRES_USER=ecole

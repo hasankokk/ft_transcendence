@@ -46,7 +46,7 @@ class RegisterView(APIView):
         return render(request, "user/register.html", context)
 
     def post(self, request):
-        
+
         data = json.loads(request.body)
         form = forms.UserRegistrationForm(data=data)
 
@@ -144,7 +144,7 @@ def logoutView(request):
 
 @api_view(['GET'])
 def profileView(request, target_id = None):
-    
+
     if target_id is None:
         user = request.user
     else:
@@ -153,7 +153,7 @@ def profileView(request, target_id = None):
     history = extract_query(GameHistory.objects.get_user_history(user.pk), user.pk)
     context = {"target_user" : user, "ranking": history}
     return render(request, "user/profile.html", context)
-        
+
 
 class refreshTokenView(APIView):
     def post(self, request):
@@ -179,7 +179,7 @@ class refreshTokenView(APIView):
             return Response({'success': False,
                              'errors': [_("Refresh token not found in cookies")]},
                             status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
 
         if serializer.is_valid():
@@ -213,15 +213,20 @@ def oauth_callback(request):
         access_token = token_response.get("access_token")
         if access_token:
             user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': f'Bearer {access_token}'}).json()
+            #image_url = user_info.get('image', {}).get('link')
 
-            #TODO: Check if access_token is valid
+			#TODO: Check if access_token is valid
 
             user, created = get_user_model().objects.get_or_create(
                 username=user_info.get('login'),
-                defaults={'email': user_info.get('email'), 'is_42authenticated': True}
+                defaults={'email': user_info.get('email'),
+                          'is_42authenticated': True,
+                          #'profile_image': image_url
+				}
             )
             if not created:
                 # user.is_42authenticated = True
+                user.profile_image = image_url
                 user.save()
 
             refresh = RefreshToken.for_user(user)
@@ -310,7 +315,7 @@ class TwoFactorAuthenticationView(APIView):
                 pass
             else:
                 return HttpResponse("No two-factor authentication device registered for the user #" + str(user_id), status=401)
-            
+
             form = OTPTokenForm(user).render("user/2fa_snippet.html")
             context = {'form': form}
             return render(request, "user/two-factor.html", context)
@@ -401,40 +406,48 @@ class TwoFactorSettingView(APIView):
 
 class UserImageView(APIView):
     def get(self, request, user_id=None):
-        
-        default_path = settings.MEDIA_URL[1:] + "image/default/user.png"
+        # Varsayılan resim yolu
+        default_image_path = os.path.join(settings.MEDIA_ROOT, 'image/default/user.png')
 
         if user_id is None:
-            print("USER_ID NOT PROVIDED") # DEBUG
-            return HttpResponse(request.user.image)
+            image_path = request.user.image.path
         else:
             try:
-                target_user = get_user_model().objects.get(pk=user_id)
-                print("USER FOUND") # DEBUG
-                return HttpResponse(target_user.image)
+                user = get_user_model().objects.get(pk=user_id)
+                image_path = user.image.path
             except get_user_model().DoesNotExist:
-                print("USER DOES NOT EXIST") # DEBUG
-                return HttpResponse(default_path)
+                image_path = default_image_path
+
+        if os.path.exists(image_path):
+            return FileResponse(open(image_path, 'rb'))
+        else:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request):
         if not request.user.is_authenticated:
-            return Response({"success": "False", "errors": [_("Unauthenticated user")]})
+            return Response({"success": False, "errors": ["Unauthenticated user"]}, status=status.HTTP_403_FORBIDDEN)
 
-        default_path = settings.MEDIA_URL[1:] + "image/default/user.png"
-
-        data = JSONParser().parse(request)
-        serializer = serializers.UserImageSerializer(data=data)
+        # JSONParser'ı kullanarak gelen veriyi ayrıştır
+        serializer = serializers.UserImageSerializer(request.user, data=request.data)
 
         if serializer.is_valid():
+            # Eski resmi silmek için güvenli kontrol
+            old_image_path = request.user.image.path
+            default_image_path = os.path.join(settings.MEDIA_ROOT, 'image/default/user.png')
 
-            old_ipath = request.user.image.path
-            if old_ipath != default_path:
-                if os.path.exists(old_ipath):
-                    os.remove(old_ipath)
+            if old_image_path != default_image_path:
+                try:
+                    if os.path.exists(old_image_path):
+                        os.remove(old_image_path)
+                except Exception as e:
+                    return Response({"success": False, "errors": [str(e)]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            request.user.image = serializer.validated_data["image"]
+            request.user.image = serializer.validated_data['image']
             request.user.save()
-            return Response({"success": True, "message": "Successfuly updated user image"})
+            return Response({"success": True, "message": "Successfully updated user image"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"success": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # =================
 #  Views for debug
