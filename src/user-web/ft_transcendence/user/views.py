@@ -10,6 +10,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.core.files.images import ImageFile
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
@@ -28,6 +29,7 @@ import json
 import logging # is this necessary?
 import requests # is this necessary?
 import os
+from tempfile import NamedTemporaryFile
 
 from . import forms
 from . import serializers
@@ -213,7 +215,6 @@ def oauth_callback(request):
         access_token = token_response.get("access_token")
         if access_token:
             user_info = requests.get('https://api.intra.42.fr/v2/me', headers={'Authorization': f'Bearer {access_token}'}).json()
-            #image_url = user_info.get('image', {}).get('link')
 
 			#TODO: Check if access_token is valid
 
@@ -221,13 +222,15 @@ def oauth_callback(request):
                 username=user_info.get('login'),
                 defaults={'email': user_info.get('email'),
                           'is_42authenticated': True,
-                          #'profile_image': image_url
 				}
             )
-            if not created:
-                # user.is_42authenticated = True
-                user.profile_image = image_url
-                user.save()
+            if created:
+                image_url = user_info.get('image', {}).get('link')
+                img = NamedTemporaryFile(delete=True)
+                response = requests.get(image_url)
+                img.write(response.content)
+                img.flush()
+                user.image.save(os.path.basename(image_url), ImageFile(img), save=True)
 
             refresh = RefreshToken.for_user(user)
             response_data = {'success': True,
@@ -428,7 +431,7 @@ class UserImageView(APIView):
             return Response({"success": False, "errors": ["Unauthenticated user"]}, status=status.HTTP_403_FORBIDDEN)
 
         # JSONParser'ı kullanarak gelen veriyi ayrıştır
-        serializer = serializers.UserImageSerializer(request.user, data=request.data)
+        serializer = serializers.UserImageSerializer(data=request.data)
 
         if serializer.is_valid():
             # Eski resmi silmek için güvenli kontrol
