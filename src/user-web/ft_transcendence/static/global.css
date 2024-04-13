@@ -12,6 +12,27 @@ body {
   background-size: 100% 100vh;
 }
 
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+background: #262424ca;
+border-radius: 8px;
+margin: 0px auto;
+min-height: 50px;
+min-width: 50px;
+}
+
+::-webkit-scrollbar-track {
+	background: #b2aead3f;
+}
+
+::-webkit-scrollbar-corner {
+	background: #b2aead3f;
+}
+
 #main-content {
   max-height: 85vh;
 }
