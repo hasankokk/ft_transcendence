@@ -46,6 +46,8 @@ function bindLogout(anchorInstance) {
   // Logout is supposed to work in the exactly opposite way
   // The content should be requested after logout is complete
 
+  sessionStorage.clear();
+
   anchorInstance.addEventListener("click", (e) => {
     e.preventDefault();
     fetch(anchorInstance.href)

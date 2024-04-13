@@ -40,31 +40,39 @@ function updateUserNavbar(isLoggedIn) {
   loginButton.hidden = isLoggedIn;
 }
 
-function chatSocketReceive(event) {
-  const data = JSON.parse(event.data);
-  if (data.type === "chat.list") {
-    const now = new Date();
-    localStorage.setItem(
-      "online-info",
-      JSON.stringify({
-        last_update: now.getHours() + ":" + now.getMinutes(),
-        users: data.users,
-      })
-    );
-  }
+function initiateChatSocket() {
+  chatSocket = new WebSocket("wss://" + window.location.host + "/ws/chat-api/");
+  chatSocket.onmessage = chatSocketReceive;
+  chatSocket.onopen = chatSocketOpen;
+  chatSocket.onclose = chatSocketClose;
 }
 
 function chatSocketOpen(event) {
   console.log("Chat connection has been established."); // DEBUG
+  sessionStorage.setItem("online-info", "[]");
+  sessionStorage.setItem("chat-room-history", "{}");
+  sessionStorage.setItem("chat-user-room", "{}");
 }
 
 function chatSocketClose(event) {
   console.log("Chat connection has been closed."); // DEBUG
 }
 
-function initiateChatSocket() {
-  chatSocket = new WebSocket("wss://" + window.location.host + "/ws/chat-api/");
-  chatSocket.onmessage = chatSocketReceive;
-  chatSocket.onopen = chatSocketOpen;
-  chatSocket.onclose = chatSocketClose;
+function chatSocketReceive(event) {
+  const data = JSON.parse(event.data);
+
+  switch (data.type) {
+    case "chat.error":
+      receiveChatErrorSignal(data);
+      break;
+    case "chat.list":
+      receiveChatListSignal(data);
+      break;
+    case "chat.open":
+      receiveChatOpenSignal(data);
+      break;
+    case "chat.message":
+      receiveChatMessageSignal(data);
+      break;
+  }
 }

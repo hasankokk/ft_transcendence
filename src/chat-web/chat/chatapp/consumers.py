@@ -14,7 +14,7 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        if not ClientPool.add_client(self.username): # If the client is already connected
+        if not ClientPool.add_client(self.username, self.channel_name): # If the client is already connected
             self.username = None
             await self.close()
             return
@@ -37,24 +37,32 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
         data["type"] = data.get("type", "chat.message")
 
         if data["type"] == "chat.message":
-            room = data.get("room", None)
             target = data.get("target", None)
 
-            if room is None or target is None:
-                return
-            if ClientPool().get_room(self.username, target) != room:
+            if target is None:
+                await self.send(text_data=json.dumps({"type": "chat.error", "error_at": "chat.message",
+                                                      "message": "No target was provided in the context"}))
                 return
 
+            room = ClientPool().get_room(self.username, target)
+
+            if room is None:
+                await self.send(text_data=json.dumps({"type": "chat.error", "error_at": "chat.message",
+                                                      "message": "No chat room is established with target " + str(target)}))
+                return
+
+            data["room"] = room
             await self.channel_layer.group_send(room, data)
         else:
             await self.channel_layer.send(self.channel_name, data)
 
     async def chat_message(self, event):
         username = event["username"]
-        prefix = username + ": "
         message = event["message"]
+        room = event["room"]
 
-        await self.send(text_data=json.dumps({"type": "chat.message", "message": prefix + message}))
+        await self.send(text_data=json.dumps({"type": "chat.message", "from": username,
+                                              "room": room, "message": message}))
 
     async def chat_list(self, event):
         await self.send(text_data=json.dumps({'type': 'chat.list',
@@ -65,15 +73,21 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
         target = event.get("target", None)
 
         if target is None:
-            await self.send(text_data=json.dumps({"type": "chat.open", "message": "No target was provided in the context"}))
+            await self.send(text_data=json.dumps({"type": "chat.error", "error_at": "chat.open",
+                                                  "message": "No target was provided in the context"}))
             return
 
-        room_name = ClientPool().add_room(event["username"], target)
+        room_name, reason = ClientPool().add_room(event["username"], target)
 
         if room_name is None:
-            await self.send(text_data=json.dumps({"type": "chat.open", "message": "Chat connection cannot be established with target " + str(target)}))
+            await self.send(text_data=json.dumps({"type": "chat.error", "error_at": "chat.open",
+                                                  "message": "Chat connection cannot be established with target " \
+                                                  + str(target) + ": " + str(reason)}))
             return
 
         await self.channel_layer.group_add(room_name, self.channel_name)
+        await self.channel_layer.group_add(room_name, ClientPool().get_channel_name(target))
         self.rooms.add(room_name)
-        await self.send(text_data=json.dumps({"type": "chat.open", "message": "Chat connection has been established with target " + str(target)}))
+        await self.send(text_data=json.dumps({"type": "chat.open", "target": str(target),
+                                              "room": room_name}))
+        # Consider sending this message to target too

@@ -118,6 +118,7 @@ class LoginView(APIView):
                     response = Response(response_data)
                     response.set_cookie('refresh_token', str(refresh), secure=True, samesite='Strict', httponly=True)
                     response.set_cookie('access_token', str(refresh.access_token), secure=True, samesite='Strict')
+                    response.set_cookie('username', str(username), secure=True, samesite='Strict')
                     return response
                 else:
                     request.session["attempting_user"] = user.id
@@ -142,6 +143,7 @@ def logoutView(request):
                          'message': _("User is logged out")})
     response.delete_cookie('refresh_token', samesite='Strict')
     response.delete_cookie('access_token', samesite='Strict')
+    response.delete_cookie('username', samesite='Strict')
     return response
 
 @api_view(['GET'])
@@ -174,6 +176,7 @@ class refreshTokenView(APIView):
                                 status=status.HTTP_401_UNAUTHORIZED)
             response.delete_cookie('refresh_token', samesite='Strict')
             response.delete_cookie('access_token', samesite='Strict')
+            response.delete_cookie('username', samesite='Strict')
             return response
     def get(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
@@ -194,6 +197,7 @@ class refreshTokenView(APIView):
                                 status=status.HTTP_401_UNAUTHORIZED)
             response.delete_cookie('refresh_token', samesite='Strict')
             response.delete_cookie('access_token', samesite='Strict')
+            response.delete_cookie('username', samesite='Strict')
             return response
 
 def get_oauth_url(request):
