@@ -64,7 +64,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
     
         ball_data = {
             "pos_x": game.ball.position.x,
-            "pox_y": game.ball.position.y,
+            "pos_y": game.ball.position.y,
             "vel_x": game.ball.velocity.x,
             "vel_y": game.ball.velocity.y,
             "radius": game.ball.radius

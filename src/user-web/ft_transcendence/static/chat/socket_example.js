@@ -184,7 +184,7 @@ function setDisabledPongRoom(setBool = true) {
 
 function handlePongGame(info) {
   if (info.status === 2 && !window.gameActive()){
-    window.gameSetBoard(info.board_size[0], info.board_size[1]);
+    window.gameInitBoard(info.board_size[0], info.board_size[1]);
     let ball = ballDict(info.ball);
     window.gameInitBall(ball.pos, ball.vel, ball.rad);
     let count = 0;
@@ -233,7 +233,7 @@ function playerDict(p_info, username) {
     vel: p_info.vel,
     nickname: p_info.nickname,
     username: username,
-    width: p_info.width ? "with" in p_info : 10,
-    height: p_info.height ? "height" in p_info : 10,
+    width: p_info.width,
+    height: p_info.height,
   };
 }

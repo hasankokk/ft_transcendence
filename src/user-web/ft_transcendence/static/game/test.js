@@ -281,20 +281,17 @@ function moveBall() {
 
   const timeDelta = clocks.ball.getDelta();
 
-  const newPos = gameElements.ball.mesh.position.clone();
-  newPos.add(
+  gameElements.ball.mesh.position.add(
     gameElements.ball.velocity.clone().multiplyScalar(timeDelta)
   );
-
-  gameElements.ball.mesh.position.copy(newPos);
 
   const height = gameElements.board.geometry.parameters.height;
   const width = gameElements.board.geometry.parameters.width;
 
-  if (Math.abs(newPos.y) > height / 2) {
+  if (Math.abs(gameElements.ball.mesh.position.y) > height / 2) {
     gameElements.ball.velocity.y *= -1;
   }
-  if (Math.abs(newPos.x) > width / 2) {
+  if (Math.abs(gameElements.ball.mesh.position.x) > width / 2) {
     gameElements.ball.velocity.x *= -1;
   }
 
@@ -361,37 +358,67 @@ function setPlayer(player, pos) {
 function setBall(pos, vel) {
   gameElements.ball.mesh.position.x = pos.x;
   gameElements.ball.mesh.position.y = pos.y;
-  gameElements.ball.velocity.set(vel.x,vel.y, 0);
+  gameElements.ball.velocity.x = vel.x;
+  gameElements.ball.velocity.y = vel.y;
 }
 
-function setBoard(width, height) {
-  const old_width = gameElements.board.geometry.parameters.width;
-  const old_height = gameElements.board.geometry.parameters.height;
+function initBoard(width, height) {
+  scene.remove(gameElements.board);
+  disposeObj(gameElements.board);
 
-  gameElements.board.scale.set(width / old_width, height / old_height, 1);
+  let geometry = new THREE.PlaneGeometry(width, height);
+  let material = new THREE.MeshPhysicalMaterial({ color: 0xb0a0fa });
+  material.transmission = 0.4;
+  gameElements["board"] = new THREE.Mesh(geometry, material);
+  gameElements.board.receiveShadow = true;
+  scene.add(gameElements.board);
+
+  console.log("BOARD SET TO");
+  console.log(width);
+  console.log(height);
+
+  const radius = gameElements.ball.mesh.geometry.parameters.radius;
+  gameElements.timerLabel.object.position.set(0, height / 2, radius * 5);
+  gameElements.board.add(gameElements.timerLabel.object);
 }
 
 function initPlayer(player, pos, vel, width, height, nickname, username) {
+  scene.remove(gameElements[player].mesh);
+  disposeObj(gameElements[player].mesh);
+  gameElements[player] = makePlayer(width, height, 0xff60a0, pos.x, vel);
   gameElements[player].label.element.textContent = nickname;
-  gameElements[player].velocity = vel;
-  gameElements[player].mesh.geometry.parameters.width = width;
-  gameElements[player].mesh.geometry.parameters.height = height;
-
-  const depth = gameElements[player].mesh.geometry.parameters.depth;
-  gameElements[player].mesh.position.z = depth * 0.15 + depth / 2;
 
   if (username === getCookie("username")) {
     clientPlayer = player;
   }
 
-  setPlayer(player, pos);
+  console.log("PLAYER " + player + " SET TO");
+  console.log(pos);
+  console.log(vel);
+  console.log(width);
+  console.log(height);
+  console.log(nickname);
+  console.log(username);
+
+  //setPlayer(player, pos);
+  scene.add(gameElements[player].mesh);
 }
 
 function initBall(pos, vel, rad) {
-  const old_radius = gameElements.ball.mesh.geometry.parameters.radius;
-  gameElements.ball.mesh.scale.set(rad / old_radius, rad / old_radius, rad / old_radius);
-  gameElements.ball.mesh.position.z = rad;
-  setBall(pos, vel);
+  scene.remove(gameElements.ball.mesh);
+  disposeObj(gameElements.ball.mesh);
+  gameElements["ball"] = makeBall(rad, 0x109440, vel.x, vel.y);
+  //setBall(pos, vel);
+
+  const height = gameElements.board.geometry.parameters.height;
+  gameElements.timerLabel.object.position.set(0, height / 2, rad * 5);
+
+  console.log("BALL SET TO");
+  console.log(pos);
+  console.log(vel);
+  console.log(rad);
+
+  scene.add(gameElements.ball.mesh);
 }
 
 function hasMatchStarted() {
@@ -402,10 +429,31 @@ function isGameActive() {
   return gameActive;
 }
 
+function disposeObj(obj) {
+  while (obj.children.length > 0) {
+    disposeObj(obj.children[0]);
+    obj.remove(obj.children[0]);
+  }
+  if (obj.geometry) obj.geometry.dispose();
+
+  if (obj.material) {
+    //in case of map, bumpMap, normalMap, envMap ...
+    Object.keys(obj.material).forEach((prop) => {
+      if (!obj.material[prop]) return;
+      if (
+        obj.material[prop] !== null &&
+        typeof obj.material[prop].dispose === "function"
+      )
+        obj.material[prop].dispose();
+    });
+    obj.material.dispose();
+  }
+}
+
 let matchStarted;
 let gameActive;
 window.gameTestInit = gameTestInit;
-window.gameSetBoard = setBoard;
+window.gameInitBoard = initBoard;
 window.gameSetPlayer = setPlayer;
 window.gameSetBall = setBall;
 window.gameInitPlayer = initPlayer;
