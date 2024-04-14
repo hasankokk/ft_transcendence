@@ -33,7 +33,7 @@ function pongRoom() {
       isConnected = true;
       pingInterval = setInterval(function () {
         pingPong(pongSocket);
-      }, 1000);
+      }, 10);
     };
 
     pongSocket.onmessage = function (e) {
@@ -56,6 +56,7 @@ function pongRoom() {
             ["1", info.current_players[1]]
           );
         }
+        handlePongGame(info);
       } else {
         document.querySelector("#pong-message-log").value +=
           info.message + "\n";
@@ -179,4 +180,60 @@ function setDisabledPongRoom(setBool = true) {
   document.querySelector("#pong-room-ready").disabled = setBool;
   document.querySelector("#pong-room-move-up").disabled = setBool;
   document.querySelector("#pong-room-move-down").disabled = setBool;
+}
+
+function handlePongGame(info) {
+  if (info.status === 2 && !window.gameActive()){
+    window.gameSetBoard(info.board_size[0], info.board_size[1]);
+    let ball = ballDict(info.ball);
+    window.gameInitBall(ball.pos, ball.vel, ball.rad);
+    let count = 0;
+    for (const p of info.current_players) {
+      let p_info = info.players[p];
+      p_info["width"] = info.paddle_size[0];
+      p_info["height"] = info.paddle_size[1];
+      const player = playerDict(p_info, p);
+      window.gameInitPlayer(
+        "player" + count,
+        player.pos, player.vel,
+        player.width, player.height,
+        player.nickname, player.username);
+      count += 1;
+    }
+    window.gameStartMatch();
+  } else if ((info.status === 3 || info.status === 4) && window.gameActive()) {
+    window.gameFinishMatch();
+  } else if (info.status === 2) {
+    let ball = ballDict(info.ball);
+    window.gameSetBall(ball.pos, ball.vel);
+
+    let count = 0;
+    for (const p of info.current_players) {
+      let p_info = info.players[p];
+      p_info["width"] = info.paddle_size[0];
+      p_info["height"] = info.paddle_size[1];
+      const player = playerDict(p_info, p);
+      window.gameSetPlayer("player" + count, player.pos);
+      count += 1;
+    }
+  }
+}
+
+function ballDict(info_ball) {
+  return {
+    pos: { x: info_ball.pos_x, y: info_ball.pos_y },
+    vel: { x: info_ball.vel_x, y: info_ball.vel_y },
+    rad: info_ball.radius,
+  };
+}
+
+function playerDict(p_info, username) {
+  return {
+    pos: { x: p_info.pos_x, y: p_info.pos_y },
+    vel: p_info.vel,
+    nickname: p_info.nickname,
+    username: username,
+    width: p_info.width ? "with" in p_info : 10,
+    height: p_info.height ? "height" in p_info : 10,
+  };
 }

@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { CSS2DRenderer, CSS2DObject } from "three-css2drenderer";
 
-const webgl_height = window.innerHeight / 1.5;
-const webgl_aspect_ratio = 4 / 3;
+const webgl_height = window.innerHeight / 2;
+const webgl_aspect_ratio = 5 / 3;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, webgl_aspect_ratio, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -24,6 +24,10 @@ function gameTestInit() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
 
+  renderer.domElement.style.position = "absolute";
+  renderer.domElement.style.left = "50%";
+  renderer.domElement.style.transform = "translateX(-50%)";
+
   const webtarget = document.getElementById("webgl");
   webtarget.focus();
   webtarget.innerHTML = "";
@@ -35,7 +39,9 @@ function gameTestInit() {
   labelRenderer.setSize(window.innerWidth, window.innerHeight);
   labelRenderer.setSize(webgl_height * webgl_aspect_ratio, webgl_height);
   labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.top = "0px";
+  labelRenderer.domElement.style.left = "50%";
+  labelRenderer.domElement.style.transform = "translateX(-50%)";
+  //-webkit-transform: translateX(-50%);
   labelRenderer.domElement.style.pointerEvents = "none";
 
   webtarget.appendChild(labelRenderer.domElement);
@@ -57,11 +63,10 @@ function animate() {
   gameElements.cube.rotation.y += 0.01;
 
   if (gameActive ?? false) {
-    const ballDelta = clocks.ball.getDelta();
     const matchDelta = clocks.match.getDelta();
     matchElapsed += matchDelta;
     gameElements.timerLabel.element.textContent = matchElapsed.toFixed(1);
-    moveBall(ballDelta);
+    moveBall();
   }
 
   renderer.render(scene, camera);
@@ -93,21 +98,14 @@ function setSceneVariables() {
 
   geometry = new THREE.PlaneGeometry(50, 30);
   material = new THREE.MeshPhysicalMaterial({ color: 0xb0a0fa });
+  material.transmission = 0.4;
   gameElements["board"] = new THREE.Mesh(geometry, material);
   gameElements.board.receiveShadow = true;
   scene.add(gameElements.board);
 
   // Camera positioning
 
-  camera.position.z =
-    gameElements.board.geometry.parameters.width /
-    2 /
-    Math.tan(((camera.fov / 2.0) * Math.PI) / 180.0);
-  camera.position.y -= camera.position.z * 0.5;
-  camera.position.z -= camera.position.z * 0.1;
-  camera.lookAt(0, 0, 0);
-  gameElements["camera_defaults"] = {};
-  gameElements["camera_defaults"]["position"] = camera.position.clone();
+  resetCamera();
 
   // Default player setup
 
@@ -178,6 +176,9 @@ function makePlayer(width, height, color, posx, velocity = 0.2) {
   const playerDiv = document.createElement("div");
   playerDiv.textContent = "player0";
   playerDiv.style.color = "#ff0000";
+  playerDiv.style.background = "#ffffff30";
+  playerDiv.style.padding = "5px";
+  playerDiv.style.borderRadius = "8px";
   const label = new CSS2DObject(playerDiv);
   label.position.z = player.position.z * 5;
   player.add(label);
@@ -221,11 +222,7 @@ function moveGameCamera() {
   // TODO: camera movement could be improved to keep a certain distance
 
   if (motions.camera.key === "r") {
-    camera.position.set(
-      gameElements.camera_defaults.position.x,
-      gameElements.camera_defaults.position.y,
-      gameElements.camera_defaults.position.z
-    );
+    resetCamera();
   } else if (motions.camera.key === "h") {
     camera.position.x -= movementFactor;
   } else if (motions.camera.key === "l") {
@@ -247,6 +244,18 @@ function moveGameCamera() {
   }
 }
 
+function resetCamera() {
+  camera.position.z =
+    gameElements.board.geometry.parameters.width /
+    2 /
+    Math.tan(((camera.fov / 2.0) * Math.PI) / 180.0);
+  camera.position.y = - gameElements.board.geometry.parameters.height / 2;
+  camera.position.y -= camera.position.z * 0.4;
+  camera.position.z -= camera.position.z * 0.3;
+  camera.position.x = 0;
+  camera.lookAt(0, 0, 0);
+}
+
 function movePlayer() {
   const movementFactor = 1;
 
@@ -259,13 +268,19 @@ function movePlayer() {
   } else {
     if (pongSocket.readyState ?? null === WebSocket.OPEN) {
       const toUp = true ? motions.player.key === "w" : false;
-
-      pongSocket.send(JSON.stringify({type: "pong.move", toUp: toUp}));
+      pongSocket.send(JSON.stringify({ type: "pong.move", to_up: toUp }));
     }
+  }
+
+  if (playerKeySet.includes(motions.player.key)) {
+    setTimeout(movePlayer, 25);
   }
 }
 
-function moveBall(timeDelta) {
+function moveBall() {
+
+  const timeDelta = clocks.ball.getDelta();
+
   const newPos = gameElements.ball.mesh.position.clone();
   newPos.add(
     gameElements.ball.velocity.clone().multiplyScalar(timeDelta)
@@ -337,18 +352,65 @@ function matchFinish() {
 }
 
 function setPlayer(player, pos) {
-  gameElements[player].mesh.position.set(pos.x,pos.y,pos.z);
+  gameElements[player].mesh.position.x = pos.x;
+  gameElements[player].mesh.position.y = pos.y;
 
   // TODO: add smooth animation
 }
 
 function setBall(pos, vel) {
-  gameElements.ball.mesh.position.set(pos.x,pos.y,pos.z);
-  gameElements.ball.velocity.set(vel.x,vel.y,vel.z);
+  gameElements.ball.mesh.position.x = pos.x;
+  gameElements.ball.mesh.position.y = pos.y;
+  gameElements.ball.velocity.set(vel.x,vel.y, 0);
+}
+
+function setBoard(width, height) {
+  const old_width = gameElements.board.geometry.parameters.width;
+  const old_height = gameElements.board.geometry.parameters.height;
+
+  gameElements.board.scale.set(width / old_width, height / old_height, 1);
+}
+
+function initPlayer(player, pos, vel, width, height, nickname, username) {
+  gameElements[player].label.element.textContent = nickname;
+  gameElements[player].velocity = vel;
+  gameElements[player].mesh.geometry.parameters.width = width;
+  gameElements[player].mesh.geometry.parameters.height = height;
+
+  const depth = gameElements[player].mesh.geometry.parameters.depth;
+  gameElements[player].mesh.position.z = depth * 0.15 + depth / 2;
+
+  if (username === getCookie("username")) {
+    clientPlayer = player;
+  }
+
+  setPlayer(player, pos);
+}
+
+function initBall(pos, vel, rad) {
+  const old_radius = gameElements.ball.mesh.geometry.parameters.radius;
+  gameElements.ball.mesh.scale.set(rad / old_radius, rad / old_radius, rad / old_radius);
+  gameElements.ball.mesh.position.z = rad;
+  setBall(pos, vel);
+}
+
+function hasMatchStarted() {
+  return matchStarted;
+}
+
+function isGameActive() {
+  return gameActive;
 }
 
 let matchStarted;
 let gameActive;
 window.gameTestInit = gameTestInit;
+window.gameSetBoard = setBoard;
 window.gameSetPlayer = setPlayer;
 window.gameSetBall = setBall;
+window.gameInitPlayer = initPlayer;
+window.gameInitBall = initBall;
+window.gameStartMatch = matchStart;
+window.gameFinishMatch = matchFinish;
+window.gameStarted = hasMatchStarted;
+window.gameActive = isGameActive;

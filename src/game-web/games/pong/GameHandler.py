@@ -9,7 +9,7 @@ from pong.Vector import Vector2D
 
 class Player:
     def __init__(self, board_size : Vector2D, paddle_size : Vector2D,
-                 nickname: str | None = None, velocity=500.0):
+                 nickname: str | None = None, velocity=5.0):
         self.nickname = nickname
         
         self.is_ready = False
@@ -42,6 +42,9 @@ class Player:
             self.position.y = player_margin.y * direction
         else:
             self.position.y = tmp
+
+    def set_nick(self, nickname):
+        self.nickname = nickname
 
 class Ball:
     def __init__(self, board_size: Vector2D, player_margin: Vector2D,
@@ -110,9 +113,9 @@ class GameType(IntEnum):
 
 class Game:
     def __init__(self,
-                 board_size=(800,600), paddle_size=(30,100),
-                 ball_radius=5.0, ball_velocity=(35.0, 25.0),
-                 time_max = 30, type=GameType.ONEVONE):
+                 board_size=(40,30), paddle_size=(2,6),
+                 ball_radius=2.0, ball_velocity=(10.0, 5.0),
+                 time_max = 15, type=GameType.ONEVONE):
 
         self.players : dict[str, Player] = {} # All players
         self.current_players = tuple() # 1V1 players when game is active
@@ -156,7 +159,7 @@ class Game:
             return False
         elif GamePool.find_user(username) is None:
             player = Player(self.board_size, self.paddle_size,
-                            **kwargs)
+                            nickname=username, **kwargs)
             if len(self.players) == 0:
                 player.is_owner = True
             self.players[username] = player

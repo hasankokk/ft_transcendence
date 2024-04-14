@@ -189,7 +189,7 @@ function bindChatRoom() {
 
 function bindPongRoom() {
   pongRoom();
-  window.pong_start();
+  window.gameTestInit();
 }
 
 function bindAnchor(anchorInstance, func) {

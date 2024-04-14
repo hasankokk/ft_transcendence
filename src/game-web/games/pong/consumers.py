@@ -75,6 +75,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
         for p in game.players:
             user = game.players[p]
             players[p] = {
+                "nickname": user.nickname if user.nickname is not None else p,
                 "is_ready": user.is_ready,
                 "is_playing": user.is_playing,
                 "is_owner": user.is_owner,
@@ -153,5 +154,13 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
                     except KeyError:
                         info += room + ": " + "None" + "; "
 
+        if message.startswith("/nick"):
+            fields = message.split()
+            if len(fields) == 1:
+                user = GamePool()[self.room_name][self.username]
+                info = str(user.nickname if user is not None else "")
+            else:
+                GamePool()[self.room_name][self.username].set_nick(fields[1])
+                
         response = msg_prefix + message + "\n" + info_prefix + info
         await self.send(text_data=json.dumps({"type": "chat.command", "message": response}))
