@@ -62,7 +62,7 @@ function bindHome() {}
 
 function bindGame() {
   console.log("called bingGame");
-  window.pong_start();
+  window.gameTestInit();
 }
 
 function bindRanking() {}

@@ -18,7 +18,8 @@
     <script type="importmap">
       {
         "imports": {
-          "three": "{% static 'game/three.module.js' %}"
+          "three": "{% static 'game/three.module.js' %}",
+          "three-css2drenderer": "{% static 'game/CSS2DRenderer.js' %}"
         }
       }
     </script>
@@ -62,6 +63,7 @@
     <script defer src="{% static 'chat/chat_room.js' %}"></script>
 
     <script defer type="module" src="{% static 'game/player_vs_player.js' %}"></script>
+    <script defer type="module" src="{% static 'game/test.js' %}"></script>
 
     <script defer src="{% static 'cookieHandler.js' %}"></script>
     <script defer src="{% static 'user/sessionNavigator.js' %}"></script>
