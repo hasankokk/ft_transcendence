@@ -36,10 +36,45 @@ function bindRegister() {
 }
 
 function bindTwoFactor() {
-  document.getElementById("2FASubmitButton").addEventListener("click", (e) => {
-    e.preventDefault();
-    submitForm(e.currentTarget.form);
-  });
+      const twoFactorType = document.getElementById('twoFactorType').value;
+
+    // Eğer 2FA devre dışı bırakılıyorsa, DELETE isteği gönder
+    if (twoFactorType === "0") {
+        fetchWithJWT('/user/remove-two-factor/', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating 2FA settings.');
+        });
+    } else {
+        // Eğer 2FA etkinleştiriliyorsa, PUT isteği gönder
+        fetchWithJWT(`/user/add-two-factor/${twoFactorType}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && twoFactorType === "3") {
+                alert(`2FA set successfully. Use this TOTP secret for setup: ${data.secret}`);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating 2FA settings.');
+        });
+    }
 }
 
 function bindLogout(anchorInstance) {
@@ -129,34 +164,37 @@ function bindProfile() {
         });
     });
 
-  document
-    .getElementById("changePassword")
-    .addEventListener("submit", function (event) {
-      event.preventDefault();
-      const oldPassword = document.getElementById("oldPassword").value;
-      const newPassword = document.getElementById("newPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
+document.getElementById("passwordForm").addEventListener("submit", function(event) {
+    event.preventDefault(); // Formun varsayılan submit işlemini engelle
 
-      fetchWithJWT("/user/change-password/", {
+    const oldPassword = document.getElementById("oldPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    fetchWithJWT("/user/change-password/", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          old_password: oldPassword,
-          new_password1: newPassword,
-          new_password2: confirmPassword,
+            old_password: oldPassword,
+            new_password1: newPassword,
+            new_password2: confirmPassword,
         }),
-      })
-        .then((response) => {
-          if (response.success) {
+    })
+    .then(response => response.json()) // Yanıtı JSON olarak ayrıştır
+    .then(data => {
+        if (data.success) {
             alert("Password changed successfully!");
-          } else {
-            alert("Failed to change password: " + response.errors.join(", "));
-          }
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
+        } else {
+            // Sunucudan dönen hata mesajlarını göster
+            alert("Failed to change password: " + data.errors.join(", "));
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("An error occurred while changing the password.");
     });
+});
+
 
   document
     .getElementById("deleteProfile")
@@ -177,6 +215,35 @@ function bindProfile() {
           });
       }
     });
+	
+	document.getElementById('friendRequestForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Formun normal submit işlemi engellenir.
+
+    const receiverUsername = document.getElementById('friendUsername').value;
+    if (!receiverUsername) {
+        alert("Please enter a username.");
+        return;
+    }
+
+    // JWT tokeniniz varsa, headers'a 'Authorization': 'Bearer ' + yourToken eklemelisiniz.
+    fetchWithJWT('/user/friend-request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // 'Authorization': 'Bearer ' + yourToken
+        },
+        body: JSON.stringify({ username: receiverUsername })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('responseMessage').innerText = data.success || data.error;
+        console.log('Success:', data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('responseMessage').innerText = "Error sending friend request.";
+    });
+});
 }
 
 function bindChat() {
