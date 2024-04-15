@@ -4,6 +4,7 @@ from time import time
 import random
 import asyncio
 import copy
+from operator import itemgetter
 
 from pong.Vector import Vector2D
 
@@ -205,7 +206,7 @@ class Game:
         return self.status == GameState.ACTIVE
 
     def is_all_ready(self):
-        if len(self.players) == self.max_players:
+        if len(self.players) == self.max_players or len(self.players) > 2:
             for user in self.players:
                 if not self.players[user].is_ready:
                     return False
@@ -259,13 +260,23 @@ class Game:
             return None
         
         pair : list[str] = list()
+        pl_tuples = [(p, self.players[p].times_played, self.players[p].wins) for p in pl_list]
 
-        for pl in pl_list:
-            if self.players[pl].times_played == loop_count:
-                if len(pair) == 0:
-                    pair.append(pl)
-                elif self.players[pair[0]].wins == self.players[pl].wins:
-                    pair.append(pl)
+        if loop_count < self.max_players / 2:
+            pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
+            pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_played
+            # primary key times_played, secondary key wins
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:2]]
+        elif loop_count != self.max_players - 1:
+            pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_player
+            pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
+            # primary key wins, secondary key times_played
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:2]]
+        else:
+            pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_player
+            pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
+            # primary key wins, secondary key times_played
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[-2::]]
 
         random.shuffle(pair)
         return (pair[0], pair[1])
@@ -297,7 +308,7 @@ class Game:
             await self.startMatch((pl_list[0], pl_list[1]))
         else:
             loop_count = 0
-            while not all([self.players[user].times_played < 2 for user in pl_list]):
+            while loop_count < self.max_players:
                 pair = self.pair_select(pl_list, loop_count)
                 if pair is not None:
                     await self.startMatch(pair)
@@ -318,6 +329,7 @@ class Game:
         for p in players:
             self.players[p].reset_game_variables()
             self.players[p].is_playing = True
+            self.players[p].score = 0
         self.players[players[0]].toggle_position_x()
         self.time_started = time()
         self.time_elapsed = self.time_started
