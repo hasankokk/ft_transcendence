@@ -5,9 +5,5 @@ def windowView(request):
     return render(request, "chat/index.html")
 
 @api_view(['GET'])
-def pongRoomView(request):
-    return render(request, "chat/pong_room.html")
-
-@api_view(['GET'])
 def chatRoomView(request):
     return render(request, "chat/chat_room.html")

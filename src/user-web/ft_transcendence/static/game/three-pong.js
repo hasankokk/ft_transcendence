@@ -3,22 +3,33 @@ import { CSS2DRenderer, CSS2DObject } from "three-css2drenderer";
 
 const webgl_height = window.innerHeight / 2;
 const webgl_aspect_ratio = 5 / 3;
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, webgl_aspect_ratio, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-const labelRenderer = new CSS2DRenderer();
-const clocks = {animation: null, match: null, ball: null, player0: null, player1: null};
+let scene;
+let camera;
+let renderer;
+let labelRenderer;
+const clocks = {
+  animation: null,
+  match: null,
+  ball: null,
+  player0: null,
+  player1: null,
+};
 const gameElements = {};
 const motions = {
   camera: { key: null, code: null },
   player: { key: null, code: null },
 };
 const cameraKeySet = "rhjklnm";
-const playerKeySet = "ws";
+const playerKeySet = ["w", "s", "ArrowUp", "ArrowDown"];
 let clientPlayer;
 let matchElapsed = 0;
 
 function gameTestInit() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, webgl_aspect_ratio, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  labelRenderer = new CSS2DRenderer();
+
   renderer.setSize(webgl_height * webgl_aspect_ratio, webgl_height);
 
   renderer.shadowMap.enabled = true;
@@ -30,7 +41,6 @@ function gameTestInit() {
 
   const webtarget = document.getElementById("webgl");
   webtarget.focus();
-  webtarget.innerHTML = "";
   webtarget.appendChild(renderer.domElement);
 
   webtarget.addEventListener("keydown", gameKeyDownEvents);
@@ -126,7 +136,7 @@ function setSceneVariables() {
   material = new THREE.MeshPhysicalMaterial({ color: 0xf0a0f0 });
   material.thickness = 1.0;
   material.roughness = 0.9;
-  material.transmission = 0.70;
+  material.transmission = 0.7;
   material.clearcoat = 0.1;
   material.clearcoatRoughness = 0;
   material.ior = 1.25;
@@ -136,8 +146,6 @@ function setSceneVariables() {
 
   // Labels
 
-  const board_height = gameElements.board.geometry.parameters.height;
-
   gameElements["timerLabel"] = {};
 
   gameElements.timerLabel["element"] = document.createElement("div");
@@ -145,11 +153,28 @@ function setSceneVariables() {
   gameElements.timerLabel.element.textContent = "00:00";
   gameElements.timerLabel.element.style.backgroundColor = "green";
   gameElements.timerLabel.element.style.color = "white";
-  gameElements.timerLabel.element.style.padding = "5px"
+  gameElements.timerLabel.element.style.padding = "5px";
 
-  gameElements.timerLabel["object"] = new CSS2DObject(gameElements.timerLabel.element);
-  gameElements.timerLabel.object.position.set(0, board_height / 2, radius * 5);
+  gameElements.timerLabel["object"] = new CSS2DObject(
+    gameElements.timerLabel.element
+  );
   gameElements.board.add(gameElements.timerLabel.object);
+
+  gameElements["scoreLabel"] = {};
+  gameElements.scoreLabel["element"] = document.createElement("div");
+  gameElements.scoreLabel.element.className = "label";
+  gameElements.scoreLabel.element.id = "pong-score-label";
+  gameElements.scoreLabel.element.textContent = "0 - 0";
+  gameElements.scoreLabel.element.style.backgroundColor = "#ffffff30";
+  gameElements.scoreLabel.element.style.color = "black";
+  gameElements.scoreLabel.element.style.padding = "5px";
+
+  gameElements.scoreLabel["object"] = new CSS2DObject(
+    gameElements.scoreLabel.element
+  );
+  gameElements.timerLabel.object.add(gameElements.scoreLabel.object);
+
+  updateLabelPositions();
 }
 
 function makeBall(radius, color, vel_x = 1, vel_y = 1) {
@@ -162,14 +187,18 @@ function makeBall(radius, color, vel_x = 1, vel_y = 1) {
   ball.position.set(0, 0, ball.geometry.parameters.radius);
   ball.castShadow = true; //default is false
   ball.receiveShadow = true;
-  return {mesh: ball, velocity: new THREE.Vector3(vel_x, vel_y, 0) };
+  return { mesh: ball, velocity: new THREE.Vector3(vel_x, vel_y, 0) };
 }
 
 function makePlayer(width, height, color, posx, velocity = 0.2) {
   const geometry = new THREE.BoxGeometry(width, height, 2);
   const material = new THREE.MeshPhysicalMaterial({ color: color });
   const player = new THREE.Mesh(geometry, material);
-  player.position.set(posx, 0, geometry.parameters.depth * 0.15 + geometry.parameters.depth / 2);
+  player.position.set(
+    posx,
+    0,
+    geometry.parameters.depth * 0.15 + geometry.parameters.depth / 2
+  );
   player.castShadow = true;
   player.receiveShadow = true;
 
@@ -183,10 +212,15 @@ function makePlayer(width, height, color, posx, velocity = 0.2) {
   label.position.z = player.position.z * 5;
   player.add(label);
 
-  return {mesh: player, velocity: velocity, label: {object: label, element: playerDiv}};
+  return {
+    mesh: player,
+    velocity: velocity,
+    label: { object: label, element: playerDiv },
+  };
 }
 
 function gameKeyDownEvents(event) {
+  event.preventDefault();
   if (cameraKeySet.includes(event.key)) {
     motions.camera.key = event.key;
     motions.camera.code = event.code;
@@ -249,7 +283,7 @@ function resetCamera() {
     gameElements.board.geometry.parameters.width /
     2 /
     Math.tan(((camera.fov / 2.0) * Math.PI) / 180.0);
-  camera.position.y = - gameElements.board.geometry.parameters.height / 2;
+  camera.position.y = -gameElements.board.geometry.parameters.height / 2;
   camera.position.y -= camera.position.z * 0.4;
   camera.position.z -= camera.position.z * 0.3;
   camera.position.x = 0;
@@ -260,10 +294,15 @@ function movePlayer() {
   const movementFactor = 1;
 
   if (!matchStarted) {
+    const otherPlayer = clientPlayer === "player0" ? "player1" : "player0";
     if (motions.player.key === "w") {
       gameElements[clientPlayer].mesh.position.y += movementFactor;
     } else if (motions.player.key === "s") {
       gameElements[clientPlayer].mesh.position.y -= movementFactor;
+    } else if (motions.player.key === "ArrowUp") {
+      gameElements[otherPlayer].mesh.position.y += movementFactor;
+    } else if (motions.player.key === "ArrowDown") {
+      gameElements[otherPlayer].mesh.position.y -= movementFactor;
     }
   } else {
     if (pongSocket.readyState ?? null === WebSocket.OPEN) {
@@ -278,7 +317,6 @@ function movePlayer() {
 }
 
 function moveBall() {
-
   const timeDelta = clocks.ball.getDelta();
 
   gameElements.ball.mesh.position.add(
@@ -304,11 +342,13 @@ function moveBall() {
 function resetPositions() {
   const ball_radius = gameElements.ball.mesh.geometry.parameters.radius;
   const board_widthd2 = gameElements.board.geometry.parameters.width / 2;
-  const player_widthd2 = gameElements.player0.mesh.geometry.parameters.width / 2;
+  const player_widthd2 =
+    gameElements.player0.mesh.geometry.parameters.width / 2;
   const player1_posx = board_widthd2 - player_widthd2;
-  const player_depthd2 = gameElements.player0.mesh.geometry.parameters.depth / 2;
+  const player_depthd2 =
+    gameElements.player0.mesh.geometry.parameters.depth / 2;
   const player_posz = player_depthd2 * 0.3 + player_depthd2;
-  gameElements.ball.mesh.position.set(0,0, ball_radius);
+  gameElements.ball.mesh.position.set(0, 0, ball_radius);
   gameElements.player0.mesh.position.set(-player1_posx, 0, player_posz);
   gameElements.player1.mesh.position.set(player1_posx, 0, player_posz);
 }
@@ -373,13 +413,9 @@ function initBoard(width, height) {
   gameElements.board.receiveShadow = true;
   scene.add(gameElements.board);
 
-  console.log("BOARD SET TO");
-  console.log(width);
-  console.log(height);
-
-  const radius = gameElements.ball.mesh.geometry.parameters.radius;
-  gameElements.timerLabel.object.position.set(0, height / 2, radius * 5);
+  updateLabelPositions();
   gameElements.board.add(gameElements.timerLabel.object);
+  gameElements.timerLabel.object.add(gameElements.scoreLabel.object);
 }
 
 function initPlayer(player, pos, vel, width, height, nickname, username) {
@@ -410,8 +446,7 @@ function initBall(pos, vel, rad) {
   gameElements["ball"] = makeBall(rad, 0x109440, vel.x, vel.y);
   //setBall(pos, vel);
 
-  const height = gameElements.board.geometry.parameters.height;
-  gameElements.timerLabel.object.position.set(0, height / 2, rad * 5);
+  updateLabelPositions();
 
   console.log("BALL SET TO");
   console.log(pos);
@@ -448,6 +483,13 @@ function disposeObj(obj) {
     });
     obj.material.dispose();
   }
+}
+
+function updateLabelPositions() {
+  const height = gameElements.board.geometry.parameters.height;
+  const radius = gameElements.ball.mesh.geometry.parameters.radius;
+  gameElements.timerLabel.object.position.set(0, height / 2, radius * 5);
+  gameElements.scoreLabel.object.position.set(0, 0, 5);
 }
 
 let matchStarted;

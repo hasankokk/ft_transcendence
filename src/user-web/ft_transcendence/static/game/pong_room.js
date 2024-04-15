@@ -1,3 +1,5 @@
+let pongRoomConnected = {};
+
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
   document.querySelector("#pong-message-input").onkeyup = function (e) {
@@ -183,7 +185,8 @@ function setDisabledPongRoom(setBool = true) {
 }
 
 function handlePongGame(info) {
-  if (info.status === 2 && !window.gameActive()){
+  updateScoreBoard(info);
+  if (info.status === 2 && !window.gameActive()) {
     window.gameInitBoard(info.board_size[0], info.board_size[1]);
     let ball = ballDict(info.ball);
     window.gameInitBall(ball.pos, ball.vel, ball.rad);
@@ -195,15 +198,20 @@ function handlePongGame(info) {
       const player = playerDict(p_info, p);
       window.gameInitPlayer(
         "player" + count,
-        player.pos, player.vel,
-        player.width, player.height,
-        player.nickname, player.username);
+        player.pos,
+        player.vel,
+        player.width,
+        player.height,
+        player.nickname,
+        player.username
+      );
       count += 1;
     }
     window.gameStartMatch();
   } else if ((info.status === 3 || info.status === 4) && window.gameActive()) {
     window.gameFinishMatch();
   } else if (info.status === 2) {
+    updateScoreLabel(info);
     let ball = ballDict(info.ball);
     window.gameSetBall(ball.pos, ball.vel);
 
@@ -236,4 +244,94 @@ function playerDict(p_info, username) {
     width: p_info.width,
     height: p_info.height,
   };
+}
+
+function updateScoreLabel(info) {
+  const score0 = info.players[info.current_players[0]].score;
+  const score1 = info.players[info.current_players[1]].score;
+
+  document.getElementById("pong-score-label").innerText = 
+  score0 + " - " + score1;
+}
+
+function updateScoreBoard(info) {
+  let stripped = {};
+
+  for (const key of Object.keys(info.players)) {
+    const value = info.players[key];
+    stripped[key] = [
+      value.nickname,
+      value.is_owner,
+      value.wins,
+      value.total_score,
+    ];
+  }
+
+  if (!isSameConnected(pongRoomConnected, stripped)) {
+    pongRoomConnected = stripped;
+
+    const element = document.getElementById("pong-player-scores");
+    element.innerHTML = "";
+    for (const [key, value] of Object.entries(pongRoomConnected)) {
+      const row = element.appendChild(document.createElement("div"));
+      row.classList.add("row");
+
+      const name = row.appendChild(document.createElement("div"));
+      name.classList.add("col");
+      name.textContent = value[0];
+      if (value[1]) {
+        const span = name.appendChild(document.createElement("span"));
+        span.classList.add("position-absolute", "start-50", "text-warning");
+        span.innerHTML = '<i class="bi bi-star-fill"></i>';
+      }
+
+      const scores = row.appendChild(document.createElement("div"));
+      scores.classList.add("col");
+      const score_row = scores.appendChild(document.createElement("div"));
+      score_row.classList.add("row", "justify-content-between");
+      const win = score_row.appendChild(document.createElement("div"));
+      win.classList.add("col");
+      win.textContent = value[2] + "W";
+      const total_score = score_row.appendChild(document.createElement("div"));
+      total_score.classList.add("col");
+      total_score.textContent = value[3] + "TP";
+    }
+  }
+}
+
+function isSameConnected(dict1, dict2) {
+  if (Object.keys(dict1).length !== Object.keys(dict2).length) {
+    return false;
+  } else {
+    const a1 = Object.entries(dict1).sort();
+    const a2 = Object.entries(dict2).sort();
+
+    for (let i = 0; i < a1.length; i++) {
+      const e1 = a1[i];
+      const e2 = a2[i];
+
+      // e1[0] key / username
+      // e1[1] value / [nickname, is_owner, wins, total_score, score]
+
+      if (e1.length !== e2.length) {
+        return false;
+      } else if (e1[0] !== e2[0]) {
+        return false;
+      }
+
+      const val1 = e1[1];
+      const val2 = e2[1];
+
+      if (val1.length !== val2.length) {
+        return false;
+      }
+
+      for (let j = 0; j < val1.length; j++) {
+        if (val1[j] !== val2[j]) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }

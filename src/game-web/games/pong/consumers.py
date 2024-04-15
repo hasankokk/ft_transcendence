@@ -161,6 +161,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
                 info = str(user.nickname if user is not None else "")
             else:
                 GamePool()[self.room_name][self.username].set_nick(fields[1])
+                info = "nickname set to " + GamePool()[self.room_name][self.username].nickname
                 
         response = msg_prefix + message + "\n" + info_prefix + info
         await self.send(text_data=json.dumps({"type": "chat.command", "message": response}))
