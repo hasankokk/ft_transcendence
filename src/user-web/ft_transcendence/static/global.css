@@ -10,6 +10,7 @@
 body {
   background: url("background.jpg") no-repeat;
   background-size: 100% 100vh;
+  overflow: hidden;
 }
 
 ::-webkit-scrollbar {

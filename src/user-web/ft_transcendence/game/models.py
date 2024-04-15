@@ -30,13 +30,13 @@ def extract_query(history, target_user=None):
         for user in match.gamehistoryuser_set.all():
             player = dict()
 
-            player["id"] = user.user.pk
-            player["username"] = user.user.username
+            player["id"] = user.user.pk if user.user is not None else str("null")
+            player["username"] = user.user.username if user.user is not None else str("[anonymous]")
             player["total_score"] = user.total_score
             player["wins"] = user.wins
             player["place"] = counter
 
-            if target_user is not None and user.user.pk == target_user:
+            if target_user is not None and user.user is not None and user.user.pk == target_user:
                 game["target_player"] = player
 
                 if counter == 1:

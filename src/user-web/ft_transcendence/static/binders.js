@@ -170,7 +170,7 @@ function bindProfile() {
           method: "DELETE",
         })
           .then(() => {
-            window.location.href = "/home"; // Redirect to home page after deletion
+            loadContent("/home/"); // Redirect to home page after deletion
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -235,11 +235,13 @@ function loadContent(anchorInstanceOrPath, pushHistory = true) {
       }
       element.innerHTML = text;
 
-      if (requestUrl !== "/chat/pong") {
-        closeSocket(pongSocket);
-        onGamePage = true;
-      } else {
+      if (!requestUrl.startsWith("/game/")) {
+        if (!requestUrl.startsWith("/chat/")) {
+          closeSocket(pongSocket);
+        }
         onGamePage = false;
+      } else {
+        onGamePage = true;
       }
     });
   checkUserSession();

@@ -428,14 +428,6 @@ function initPlayer(player, pos, vel, width, height, nickname, username) {
     clientPlayer = player;
   }
 
-  console.log("PLAYER " + player + " SET TO");
-  console.log(pos);
-  console.log(vel);
-  console.log(width);
-  console.log(height);
-  console.log(nickname);
-  console.log(username);
-
   //setPlayer(player, pos);
   scene.add(gameElements[player].mesh);
 }

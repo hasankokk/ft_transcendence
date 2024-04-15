@@ -96,10 +96,13 @@
                   aria-expanded="false"
                   aria-controls="collapse_{{ game.id }}"
                 >
-                  score {{ game.target_player.total_score }}, type {{ game.type
-                  }}, {% if game.type == "TOURNAMENT" %} placed at: {{
-                  game.target_player.place }} {% else %} has_won? {{
-                  game.target_player.has_won }} {% endif %}
+                  score {{ game.target_player.total_score }},
+                  type {{ game.type }},
+                  {% if game.type == "TOURNAMENT" %}
+                  placed at: {{ game.target_player.place }}
+                  {% else %}
+                  has_won? {{ game.target_player.has_won }}
+                  {% endif %}
                 </button>
               </h2>
               <div
@@ -113,19 +116,18 @@
                   <ul>
                     {% for player in game.players %}
                     <li>
-                      <a
-                        href="{% url 'user:target-profile' target_id=player.id %}"
-                        >{{ player.username }}</a
-                      >
-                      total_score {{ player.total_score }} wins {{ player.wins
-                      }}
+                      {% if player.id != "null" %}
+                      <a href="{% url 'user:target-profile' target_id=player.id %}">{{ player.username }}</a>
+                      {% else %}
+                      <a href="/home/">{{ player.username }}</a>
+                      {% endif %}
+                      total_score {{ player.total_score }} wins {{ player.wins }}
                     </li>
                     {% endfor %}
                   </ul>
                 </div>
               </div>
             </div>
-
             {% endfor %}
           </div>
           <!-- END::PROFILE VIEW ACCORDION -->

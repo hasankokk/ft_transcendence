@@ -147,6 +147,7 @@ def logoutView(request):
     return response
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def profileView(request, target_id = None):
 
     if target_id is None:

@@ -1,18 +1,29 @@
 let pongRoomConnected = {};
+let pongRoomName;
+let isConnected = false;
+let pingInterval;
+let pongGameType;
 
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
-  document.querySelector("#pong-message-input").onkeyup = function (e) {
-    if (e.key === "Enter") {
-      // enter, return
-      document.querySelector("#pong-message-submit").click();
-    }
-  };
+  document
+    .querySelector("#pong-message-input")
+    .addEventListener("keyup", function (e) {
+      if (e.key === "Enter") {
+        // enter, return
+        document.querySelector("#pong-message-submit").click();
+      }
+    });
 
-  setDisabledPongRoom();
+  if (isConnected) {
+    setDisabledPongRoom(false);
+  } else {
+    setDisabledPongRoom(true);
+  }
 
-  let isConnected = false;
-  let pingInterval;
+  document.getElementById("pong-room-switch-type").addEventListener("click", function (e) {
+    pingSwitchType(pongSocket);
+  });
 
   document.querySelector("#pong-room-connect").onclick = function (e) {
     const messageInputDom = document.querySelector("#pong-room-input");
@@ -28,6 +39,7 @@ function pongRoom() {
     );
 
     pongSocket.onopen = function (e) {
+      pongRoomName = roomName;
       document.querySelector("#pong-message-log").value +=
         "[!] Connected to " + pongSocket.url + "\n";
 
@@ -39,13 +51,13 @@ function pongRoom() {
     };
 
     pongSocket.onmessage = function (e) {
+      if (!onGamePage) {
+        return;
+      }
       const info = JSON.parse(e.data);
       if (("type" in info) & (info.type === "pong.status")) {
-        document.querySelector("#pong-ping-log").value = JSON.stringify(
-          info,
-          null,
-          4
-        );
+        const log = document.querySelector("#pong-ping-log");
+        log.value = JSON.stringify(info, null, 4);
         if (("current_players" in info) & (info.current_players.length > 0)) {
           replaceOutput(
             info.players[info.current_players[0]],
@@ -66,11 +78,14 @@ function pongRoom() {
     };
 
     pongSocket.onclose = function (e) {
-      document.querySelector("#pong-message-log").value +=
-        "[!] Pong socket closed at " + pongSocket.url + "\n";
+      const log = document.querySelector("#pong-message-log");
+      if (typeof log != "null") {
+        log.value += "[!] Pong socket closed at " + pongSocket.url + "\n";
+      }
 
       setDisabledPongRoom();
       isConnected = false;
+      pongRoomName = null;
       clearInterval(pingInterval);
     };
 
@@ -113,12 +128,14 @@ function pongRoom() {
 }
 
 function pingPong(socket) {
-  socket.send(
-    JSON.stringify({
-      type: "pong.status",
-      message: "",
-    })
-  );
+  if (isConnected) {
+    socket.send(
+      JSON.stringify({
+        type: "pong.status",
+        message: "",
+      })
+    );
+  }
 }
 
 function pingReady(socket) {
@@ -135,6 +152,22 @@ function pingMove(socket, to_up = true) {
     JSON.stringify({
       type: "pong.move",
       to_up: to_up,
+    })
+  );
+}
+
+function pingSwitchType(socket) {
+  let targetType;
+  if (pongGameType === 1) {
+    targetType = "TOURNAMENT";
+  } else {
+    targetType = "ONEVONE";
+  }
+
+  socket.send(
+    JSON.stringify({
+      type: "pong.setting",
+      settings: {type: targetType},
     })
   );
 }
@@ -185,6 +218,7 @@ function setDisabledPongRoom(setBool = true) {
 }
 
 function handlePongGame(info) {
+  pongGameType = info.game_type;
   updateScoreBoard(info);
   if (info.status === 2 && !window.gameActive()) {
     window.gameInitBoard(info.board_size[0], info.board_size[1]);
@@ -250,8 +284,8 @@ function updateScoreLabel(info) {
   const score0 = info.players[info.current_players[0]].score;
   const score1 = info.players[info.current_players[1]].score;
 
-  document.getElementById("pong-score-label").innerText = 
-  score0 + " - " + score1;
+  document.getElementById("pong-score-label").innerText =
+    score0 + " - " + score1;
 }
 
 function updateScoreBoard(info) {
