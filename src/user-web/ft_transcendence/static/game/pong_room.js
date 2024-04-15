@@ -3,6 +3,7 @@ let pongRoomName;
 let isConnected = false;
 let pingInterval;
 let pongGameType;
+let pongNextPlayers = [];
 
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
@@ -219,6 +220,7 @@ function setDisabledPongRoom(setBool = true) {
 
 function handlePongGame(info) {
   pongGameType = info.game_type;
+  
   updateScoreBoard(info);
   if (info.status === 2 && !window.gameActive()) {
     window.gameInitBoard(info.board_size[0], info.board_size[1]);
@@ -245,6 +247,9 @@ function handlePongGame(info) {
   } else if ((info.status === 3 || info.status === 4) && window.gameActive()) {
     window.gameFinishMatch();
   } else if (info.status === 2) {
+    if (pongGameType === 2) {
+      notifyNextPlayers(info.next_players);
+    }
     updateScoreLabel(info);
     let ball = ballDict(info.ball);
     window.gameSetBall(ball.pos, ball.vel);
@@ -367,5 +372,54 @@ function isSameConnected(dict1, dict2) {
       }
     }
   }
+  return true;
+}
+
+function notifyNextPlayers(next_players) {
+
+  if (isSameNextPlayers(pongNextPlayers, next_players)) {
+    return;
+  }
+
+  pongNextPlayers = next_players;
+  const toastEl = document.createElement("div");
+  toastEl.classList.add("toast");
+  toastEl.setAttribute("role", "alert");
+  toastEl.setAttribute("aria-live", "assertive");
+  toastEl.setAttribute("aria-atomic", "true");
+  
+  const header = toastEl.appendChild(document.createElement("div"));
+  header.classList.add("toast-header");
+  const strong = header.appendChild(document.createElement("strong"));
+  strong.classList.add("me-auto");
+  strong.innerHTML = "Pong";
+  const button = header.appendChild(document.createElement("button"));
+  button.classList.add("btn-close");
+  button.setAttribute("type", "button");
+  button.setAttribute("data-bs-dismiss", "toast");
+  button.setAttribute("aria-label", "Close");
+
+  const body = toastEl.appendChild(document.createElement("div"));
+  body.classList.add("toast-body");
+  body.innerHTML = "Next players in tournament " + pongNextPlayers[0] + " vs " + pongNextPlayers[1];
+
+  document.getElementById("toast-content").appendChild(toastEl);
+
+  const toast = new bootstrap.Toast(toastEl);
+  toast.show();
+  setTimeout(toast.dispose, 5000);
+}
+
+function isSameNextPlayers(arr1, arr2) {
+  if (arr1.length != arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+
   return true;
 }

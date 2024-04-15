@@ -2,6 +2,7 @@ from enum import IntEnum
 from time import time
 
 import random
+import math
 import asyncio
 import copy
 from operator import itemgetter
@@ -120,6 +121,7 @@ class Game:
 
         self.players : dict[str, Player] = {} # All players
         self.current_players = tuple() # 1V1 players when game is active
+        self.next_players = tuple()
         self.channels = {} # Connected players
         self.status = GameState.PENDING
         self.time_started = time() # Dummy default
@@ -253,33 +255,36 @@ class Game:
     def __len__(self):
         return len(self.channels)
 
-    def pair_select(self, pl_list, loop_count) -> None | tuple[str, str]: 
+    def pair_select(self, pl_list, loop_count) -> tuple[None | tuple[str, ...], None | tuple[str, ...]]: 
         # match players with lowest number of times_played and wins
         
-        if loop_count >= self.max_players:
-            return None
+        if loop_count >= self.max_players or len(pl_list) == 0:
+            return None, None
         
         pair : list[str] = list()
+        select = len(pl_list) if len(pl_list) < 2 else 2
         pl_tuples = [(p, self.players[p].times_played, self.players[p].wins) for p in pl_list]
 
-        if loop_count < self.max_players / 2:
+        if loop_count < math.floor(self.max_players / 2):
             pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
             pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_played
             # primary key times_played, secondary key wins
-            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:2]]
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:select]]
         elif loop_count != self.max_players - 1:
             pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_player
             pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
             # primary key wins, secondary key times_played
-            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:2]]
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[0:select]]
         else:
             pl_tuples = sorted(pl_tuples, key=itemgetter(1)) # sort by times_player
             pl_tuples = sorted(pl_tuples, key=itemgetter(2)) # sort by wins
             # primary key wins, secondary key times_played
-            pair = [pl_tuple[0] for pl_tuple in pl_tuples[-2::]]
+            pair = [pl_tuple[0] for pl_tuple in pl_tuples[-select::]]
 
+        diff = [x for x in pl_list if x not in pair]
+        next, _ = self.pair_select(diff, loop_count + 1)
         random.shuffle(pair)
-        return (pair[0], pair[1])
+        return (tuple(pair), next)
 
     def paddle_range(self, players) -> tuple[float, float]:
         if self.ball.position.x > 0:
@@ -309,8 +314,17 @@ class Game:
         else:
             loop_count = 0
             while loop_count < self.max_players:
-                pair = self.pair_select(pl_list, loop_count)
-                if pair is not None:
+                pair, next = self.pair_select(pl_list, loop_count)
+                if next is None:
+                    self.next_players = tuple()
+                elif len(next) == 1:
+                    if loop_count < math.floor(self.max_players / 2):
+                        self.next_players = (next[0], "[loser]")
+                    else:
+                        self.next_players = (next[0], "[winner]")
+                else:
+                    self.next_players = next
+                if pair is not None and len(pair) == 2:
                     await self.startMatch(pair)
                 else:
                     raise PairNotFound()

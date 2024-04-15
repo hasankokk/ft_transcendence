@@ -96,6 +96,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
             "paddle_size": (game.paddle_size.x, game.paddle_size.y),
             "players": players,
             "current_players": game.current_players,
+            "next_players": game.next_players,
             "seconds": game.time_elapsed - game.time_started,
             "max_seconds": game.time_max,
         }
