@@ -320,9 +320,17 @@ function movePlayer() {
 
 function moveBall() {
   const timeDelta = clocks.ball.getDelta();
+  const difference = gameElements.ball.velocity
+    .clone()
+    .multiplyScalar(timeDelta);
 
-  gameElements.ball.mesh.position.add(
-    gameElements.ball.velocity.clone().multiplyScalar(timeDelta)
+  gameElements.ball.mesh.position.lerp(
+    new THREE.Vector3(
+      gameElements.ball.mesh.position.x + difference.x,
+      gameElements.ball.mesh.position.y + difference.y,
+      gameElements.ball.mesh.position.z
+    ),
+    0.3
   );
 
   const height = gameElements.board.geometry.parameters.height;
@@ -391,15 +399,19 @@ function matchFinish() {
 }
 
 function setPlayer(player, pos) {
-  gameElements[player].mesh.position.x = pos.x;
-  gameElements[player].mesh.position.y = pos.y;
-
-  // TODO: add smooth animation
+  const pos_z = gameElements[player].mesh.position.z;
+  gameElements[player].mesh.position.lerp(
+    new THREE.Vector3(pos.x, pos.y, pos_z),
+    0.3
+  );
 }
 
 function setBall(pos, vel) {
-  gameElements.ball.mesh.position.x = pos.x;
-  gameElements.ball.mesh.position.y = pos.y;
+  const pos_z = gameElements.ball.mesh.position.z;
+  gameElements.ball.mesh.position.lerp(
+    new THREE.Vector3(pos.x, pos.y, pos_z),
+    0.3
+  );
   gameElements.ball.velocity.x = vel.x;
   gameElements.ball.velocity.y = vel.y;
 }
