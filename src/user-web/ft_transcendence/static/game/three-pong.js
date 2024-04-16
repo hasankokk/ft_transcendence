@@ -15,10 +15,11 @@ const clocks = {
   player1: null,
 };
 const gameElements = {};
-const motions = {
-  camera: { key: null, code: null },
-  player: { key: null, code: null },
+const keyIntervals = {
+  camera: {},
+  player: {},
 };
+const keyPressed = {};
 const cameraKeySet = "rhjklnm";
 const playerKeySet = ["w", "s", "ArrowUp", "ArrowDown"];
 let clientPlayer;
@@ -221,14 +222,14 @@ function makePlayer(width, height, color, posx, velocity = 0.2) {
 
 function gameKeyDownEvents(event) {
   event.preventDefault();
+  if (keyPressed[event.key] ?? false) return;
+  keyPressed[event.key] = true;
+
   if (cameraKeySet.includes(event.key)) {
-    motions.camera.key = event.key;
-    motions.camera.code = event.code;
-    moveGameCamera();
+    console.log("SETTING INTERVAL...");
+    keyIntervals.camera[event.key] = setInterval(moveGameCamera, 5, event.key);
   } else if (playerKeySet.includes(event.key)) {
-    motions.player.key = event.key;
-    motions.player.code = event.code;
-    movePlayer();
+    keyIntervals.player[event.key] = setInterval(movePlayer, 25, event.key);
   } else if (event.key === "t") {
     toggleMatch();
   } else if (event.key === "x") {
@@ -242,40 +243,38 @@ function gameKeyDownEvents(event) {
 
 function gameKeyUpEvents(event) {
   if (cameraKeySet.includes(event.key)) {
-    motions.camera.key = null;
-    motions.camera.code = null;
+    clearInterval(keyIntervals.camera[event.key]);
+    keyIntervals.camera[event.key] = null;
+    keyPressed[event.key] = false;
   } else if (playerKeySet.includes(event.key)) {
-    motions.player.key = null;
-    motions.player.code = null;
+    clearInterval(keyIntervals.player[event.key]);
+    keyIntervals.player[event.key] = null;
+    keyPressed[event.key] = false;
   }
 }
 
-function moveGameCamera() {
+function moveGameCamera(key) {
   const movementFactor = 0.1;
 
   // TODO: camera movement could be improved to keep a certain distance
 
-  if (motions.camera.key === "r") {
+  if (key === "r") {
     resetCamera();
-  } else if (motions.camera.key === "h") {
+  } else if (key === "h") {
     camera.position.x -= movementFactor;
-  } else if (motions.camera.key === "l") {
+  } else if (key === "l") {
     camera.position.x += movementFactor;
-  } else if (motions.camera.key === "j") {
+  } else if (key === "j") {
     camera.position.y -= movementFactor;
-  } else if (motions.camera.key === "k") {
+  } else if (key === "k") {
     camera.position.y += movementFactor;
-  } else if (motions.camera.key === "n") {
+  } else if (key === "n") {
     camera.position.z -= movementFactor;
-  } else if (motions.camera.key === "m") {
+  } else if (key === "m") {
     camera.position.z += movementFactor;
   }
 
   camera.lookAt(0, 0, 0);
-
-  if (cameraKeySet.includes(motions.camera.key)) {
-    setTimeout(moveGameCamera, 10);
-  }
 }
 
 function resetCamera() {
@@ -290,31 +289,30 @@ function resetCamera() {
   camera.lookAt(0, 0, 0);
 }
 
-function movePlayer() {
+function movePlayer(key) {
   const movementFactor = 1;
 
   if (!matchStarted) {
     const otherPlayer = clientPlayer === "player0" ? "player1" : "player0";
-    if (motions.player.key === "w") {
-      gameElements[clientPlayer].mesh.position.y += movementFactor;
-    } else if (motions.player.key === "s") {
-      gameElements[clientPlayer].mesh.position.y -= movementFactor;
-    } else if (motions.player.key === "ArrowUp") {
-      gameElements[otherPlayer].mesh.position.y += movementFactor;
-    } else if (motions.player.key === "ArrowDown") {
-      gameElements[otherPlayer].mesh.position.y -= movementFactor;
+    const player = "ws".includes(key) ? clientPlayer : otherPlayer;
+    const new_pos = gameElements[player].mesh.position.clone();
+    if (key === "w") {
+      new_pos.y += movementFactor;
+    } else if (key === "s") {
+      new_pos.y -= movementFactor;
+    } else if (key === "ArrowUp") {
+      new_pos.y += movementFactor;
+    } else if (key === "ArrowDown") {
+      new_pos.y -= movementFactor;
     }
+    setPlayer(player, new_pos);
   } else {
     if (pongSocket.readyState ?? null === WebSocket.OPEN) {
-      const toUp = true ? motions.player.key === "w" : false;
+      const toUp = true ? key === "w" : false;
       if (pongCurrentPlayers.includes(getCookie("username"))) {
         pongSocket.send(JSON.stringify({ type: "pong.move", to_up: toUp }));
       }
     }
-  }
-
-  if (playerKeySet.includes(motions.player.key)) {
-    setTimeout(movePlayer, 50);
   }
 }
 
@@ -330,7 +328,7 @@ function moveBall() {
       gameElements.ball.mesh.position.y + difference.y,
       gameElements.ball.mesh.position.z
     ),
-    0.3
+    0.4
   );
 
   const height = gameElements.board.geometry.parameters.height;
@@ -402,7 +400,7 @@ function setPlayer(player, pos) {
   const pos_z = gameElements[player].mesh.position.z;
   gameElements[player].mesh.position.lerp(
     new THREE.Vector3(pos.x, pos.y, pos_z),
-    0.3
+    0.2
   );
 }
 
@@ -410,7 +408,7 @@ function setBall(pos, vel) {
   const pos_z = gameElements.ball.mesh.position.z;
   gameElements.ball.mesh.position.lerp(
     new THREE.Vector3(pos.x, pos.y, pos_z),
-    0.3
+    0.4
   );
   gameElements.ball.velocity.x = vel.x;
   gameElements.ball.velocity.y = vel.y;

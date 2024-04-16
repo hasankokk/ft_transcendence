@@ -250,7 +250,7 @@ class Game:
         while not (len(self.channels) == 0 and self.status == GameState.PENDING):
             if len(self.channels) > 0:
                 await channel_layer.group_send(room_name, self.get_ping_dict())
-                await asyncio.sleep(10e-3) # 25ms
+                await asyncio.sleep(30e-3) # 25ms
 
     def get_ping_dict(self):
 
