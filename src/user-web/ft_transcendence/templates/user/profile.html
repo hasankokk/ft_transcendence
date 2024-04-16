@@ -13,11 +13,16 @@
         class="rounded-circle img-fluid"
         style="width: 150px"
       />
-      <h5>{{ target_user.username }}</h5>
-      <div class="d-flex justify-content-center mb-2">
-        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addFriendModal">
-          Add Friend
-        </button>
+		<h5 id="targetUsername">{{ target_user.username }}</h5>
+        <div class="d-flex justify-content-center mb-2">
+          <!-- Add Friend Button, only visible if not viewing own profile -->
+          {% if user.pk != target_user.pk %}
+          <button type="button" class="btn btn-outline-primary me-2" onclick="sendFriendRequest()">Add Friend</button>
+                  <!-- Block User Button, only visible if not viewing own profile -->
+          <button type="button" class="btn btn-outline-danger" onclick="blockUser()">Block User</button>
+          {% endif %}
+
+                  <!-- Edit Profile Button, only visible if viewing own profile -->
         {% if user.pk == target_user.pk %}
         <button
           type="button"

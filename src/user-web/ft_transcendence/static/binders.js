@@ -215,35 +215,6 @@ document.getElementById("passwordForm").addEventListener("submit", function(even
           });
       }
     });
-	
-	document.getElementById('friendRequestForm').addEventListener('submit', function(event) {
-    event.preventDefault(); // Formun normal submit işlemi engellenir.
-
-    const receiverUsername = document.getElementById('friendUsername').value;
-    if (!receiverUsername) {
-        alert("Please enter a username.");
-        return;
-    }
-
-    // JWT tokeniniz varsa, headers'a 'Authorization': 'Bearer ' + yourToken eklemelisiniz.
-    fetchWithJWT('/user/friend-request/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer ' + yourToken
-        },
-        body: JSON.stringify({ username: receiverUsername })
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('responseMessage').innerText = data.success || data.error;
-        console.log('Success:', data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('responseMessage').innerText = "Error sending friend request.";
-    });
-});
 }
 
 function bindChat() {
@@ -347,4 +318,50 @@ function closeSocket(socketInstance) {
       socketInstance.close();
     }
   }
+}
+
+function sendFriendRequest() {
+    const username = document.getElementById('targetUsername').innerText;
+    const data = JSON.stringify({
+        receiver: username
+    });
+
+    fetchWithJWT("/user/friend-request/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: data
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.success || data.error);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function blockUser() {
+    const username = document.getElementById('targetUsername').innerText;
+
+    const data = JSON.stringify({
+        receiver: username,
+        action: 'block' // Assume the API can handle a block action, if not, you need to adjust backend logic
+    });
+
+    fetchWithJWT("/user/friend-request/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: data
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.success || data.error);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
