@@ -307,12 +307,14 @@ function movePlayer() {
   } else {
     if (pongSocket.readyState ?? null === WebSocket.OPEN) {
       const toUp = true ? motions.player.key === "w" : false;
-      pongSocket.send(JSON.stringify({ type: "pong.move", to_up: toUp }));
+      if (pongCurrentPlayers.includes(getCookie("username"))) {
+        pongSocket.send(JSON.stringify({ type: "pong.move", to_up: toUp }));
+      }
     }
   }
 
   if (playerKeySet.includes(motions.player.key)) {
-    setTimeout(movePlayer, 25);
+    setTimeout(movePlayer, 50);
   }
 }
 
@@ -439,11 +441,6 @@ function initBall(pos, vel, rad) {
   //setBall(pos, vel);
 
   updateLabelPositions();
-
-  console.log("BALL SET TO");
-  console.log(pos);
-  console.log(vel);
-  console.log(rad);
 
   scene.add(gameElements.ball.mesh);
 }

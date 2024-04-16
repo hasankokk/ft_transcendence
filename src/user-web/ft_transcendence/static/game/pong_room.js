@@ -1,9 +1,9 @@
 let pongRoomConnected = {};
 let pongRoomName;
 let isConnected = false;
-let pingInterval;
 let pongGameType;
 let pongNextPlayers = [];
+let pongCurrentPlayers = [];
 
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
@@ -46,9 +46,6 @@ function pongRoom() {
 
       setDisabledPongRoom(false);
       isConnected = true;
-      pingInterval = setInterval(function () {
-        pingPong(pongSocket);
-      }, 10);
     };
 
     pongSocket.onmessage = function (e) {
@@ -87,7 +84,6 @@ function pongRoom() {
       setDisabledPongRoom();
       isConnected = false;
       pongRoomName = null;
-      clearInterval(pingInterval);
     };
 
     document.querySelector("#pong-message-submit").onclick = function (e) {
@@ -220,6 +216,7 @@ function setDisabledPongRoom(setBool = true) {
 
 function handlePongGame(info) {
   pongGameType = info.game_type;
+  pongCurrentPlayers = info.current_players;
   
   updateScoreBoard(info);
   if (info.status === 2 && !window.gameActive()) {

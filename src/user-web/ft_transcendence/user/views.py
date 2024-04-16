@@ -247,6 +247,7 @@ def oauth_callback(request):
             response = Response(response_data)
             response.set_cookie('refresh_token', str(refresh), secure=True, samesite='Strict', httponly=True)
             response.set_cookie('access_token', str(refresh.access_token), secure=True, samesite='Strict')
+            response.set_cookie('username', str(user.username), secure=True, samesite='Strict')
             return response
         else:
             response = {'success': False, 'message': _("Incorrect access token")}

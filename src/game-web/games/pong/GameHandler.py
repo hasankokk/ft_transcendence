@@ -9,6 +9,8 @@ from operator import itemgetter
 
 from pong.Vector import Vector2D
 
+from channels.layers import get_channel_layer
+
 class Player:
     def __init__(self, board_size : Vector2D, paddle_size : Vector2D,
                  nickname: str | None = None, velocity=5.0):
@@ -150,6 +152,7 @@ class Game:
 
     def update_player_margin(self, is_init=False):
         self.player_margin = (self.board_size - self.paddle_size) * 0.5
+        self.player_margin.x = self.board_size.x * 0.5 - self.paddle_size.x
         if not is_init:
             self.ball.update_margin(self.board_size, self.player_margin)
 
@@ -172,11 +175,18 @@ class Game:
 
     def remove_player(self, username: str) -> None | Player:
         self.remove_channel(username)
-        return self.players.pop(username, None)
+        if self.status == GameState.PENDING:
+            return self.players.pop(username, None)
 
     def remove_channel(self, username : str):
         self.players[username].is_ready = False
         self.channels.pop(username, None)
+
+    def is_nick_unique(self, nickname):
+        for p in self.players:
+            if self.players[p].nickname == nickname:
+                return False
+        return True
 
     def update_settings(self, settings):
         # if request from user who is_owner and game state is PENDING
@@ -233,6 +243,59 @@ class Game:
             task = asyncio.create_task(self.startGame())
             self.task.add(task)
             task.add_done_callback(self.task.discard)
+
+    async def ping_loop(self, room_name):
+        channel_layer = get_channel_layer()
+
+        while not (len(self.channels) == 0 and self.status == GameState.PENDING):
+            if len(self.channels) > 0:
+                await channel_layer.group_send(room_name, self.get_ping_dict())
+                await asyncio.sleep(10e-3) # 25ms
+
+    def get_ping_dict(self):
+
+        ball_data = {
+            "pos_x": self.ball.position.x,
+            "pos_y": self.ball.position.y,
+            "vel_x": self.ball.velocity.x,
+            "vel_y": self.ball.velocity.y,
+            "radius": self.ball.radius
+        }
+
+        players = {}
+
+        for p in self.players:
+            user = self.players[p]
+            players[p] = {
+                "nickname": user.nickname if user.nickname is not None else p,
+                "is_ready": user.is_ready,
+                "is_playing": user.is_playing,
+                "is_owner": user.is_owner,
+                "pos_x": user.position.x,
+                "pos_y": user.position.y,
+                "vel": user.velocity,
+                "score": user.score,
+                "total_score": user.total_score,
+                "wins": user.wins,
+            }
+
+        data = {
+            "status": self.status,
+            "game_type": self.type,
+            "max_players": self.max_players,
+            "ball": ball_data,
+            "board_size": (self.board_size.x, self.board_size.y),
+            "paddle_size": (self.paddle_size.x, self.paddle_size.y),
+            "players": players,
+            "current_players": self.current_players,
+            "next_players": self.next_players,
+            "seconds": self.time_elapsed - self.time_started,
+            "max_seconds": self.time_max,
+        }
+
+        data["type"] = "pong.status"
+
+        return data
 
     async def move_player(self, username, to_up : bool):
         now = time()
@@ -352,7 +415,7 @@ class Game:
             await self.cycle(players)
             if self.time_elapsed - self.time_started > self.time_max:
                 self.status = GameState.LOOP_ENDED
-            await asyncio.sleep(11e-3) # 25ms
+            await asyncio.sleep(20e-3) # 25ms
 
         for p in players:
             self.players[p].times_played += 1
