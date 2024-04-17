@@ -125,7 +125,8 @@ function setSceneVariables() {
 
   gameElements["player1"] = makePlayer(2, 6, 0xff60a0, 24);
   scene.add(gameElements.player1.mesh);
-  gameElements.player1.label.element.textContent = "player1";
+  gameElements.player1.label.element.style.color = "black";
+  gameElements.player1.label.element.textContent = "Player1";
 
   // Default ball setup
 
@@ -204,8 +205,8 @@ function makePlayer(width, height, color, posx, velocity = 0.2) {
   player.receiveShadow = true;
 
   const playerDiv = document.createElement("div");
-  playerDiv.textContent = "player0";
-  playerDiv.style.color = "#ff0000";
+  playerDiv.textContent = "Player0";
+  playerDiv.style.color = "black";
   playerDiv.style.background = "#ffffff30";
   playerDiv.style.padding = "5px";
   playerDiv.style.borderRadius = "8px";
