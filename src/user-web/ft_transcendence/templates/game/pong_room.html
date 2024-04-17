@@ -49,20 +49,20 @@
         </div>
     </div>
     <div class="row m-1">
-        <textarea class="col" id="pong-message-log" rows="18" readonly></textarea>
+        <textarea class="col" id="pong-message-log" rows="18" readonly style='background-color:transparent !important;'></textarea>
     </div>
     <div class="row m-1">
         <input class="col-10" id="pong-message-input" type="text" placeholder="Message">
-        <input class="col-2" id="pong-message-submit" type="button" value="Send">
+        <input class="col-2 btn btn-info" id="pong-message-submit" type="button" value="Send">
     </div>
     <div class="row m-1">
         <input class="col-3" id="pong-room-input" type="text" placeholder="Room name">
-        <input class="col-2" id="pong-room-connect" type="button" value="Connect">
-        <input class="col-2" id="pong-room-disconnect" type="button" value="Disconnect">
-        <input class="col-2" id="pong-room-ready" type="button" value="Toggle Ready">
-        <input class="col-1 ms-2" id="pong-room-move-up" type="button" value="↑">
-        <input class="col-1" id="pong-room-move-down" type="button" value="↓">
-        <input class="col" id="pong-room-switch-type" type="button" value="Switch Type">
+        <input class="col-2 btn btn-success" id="pong-room-connect" type="button" value="Connect">
+        <input class="col-2 btn btn-danger" id="pong-room-disconnect" type="button" value="Disconnect">
+        <input class="col-2 btn btn-warning" id="pong-room-ready" type="button" value="Toggle Ready">
+        <input class="col-1 ms-2" id="pong-room-move-up" type="button" value="↑" hidden>
+        <input class="col-1" id="pong-room-move-down" type="button" value="↓" hidden>
+        <input class="col btn btn-light" id="pong-room-switch-type" type="button" value="Switch Type">
     </div>
     <div class="row m-1">
         <textarea class="col" id="pong-ping-log" rows="20" readonly></textarea>
