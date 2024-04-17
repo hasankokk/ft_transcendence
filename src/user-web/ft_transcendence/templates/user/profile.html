@@ -174,11 +174,12 @@
   tabindex="-1"
   aria-labelledby="editProfileLabel"
   aria-hidden="true"
+  data-bs-theme="dark"
 >
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="editProfileLabel">Edit Profile</h1>
+        <h1 class="modal-title fs-5" id="editProfileLabel" style="color:#fff;">Edit Profile</h1>
         <button
           type="button"
           class="btn-close"
@@ -191,7 +192,7 @@
         <!-- Profile Photo Update Form -->
         <form id="profilePhotoForm" enctype="multipart/form-data">
           <div class="mb-3">
-            <label for="profilePhoto" class="form-label">Profile Photo</label>
+            <label for="profilePhoto" class="form-label" style="color:#fff;">Profile Photo</label>
             <input
               type="file"
               class="form-control"
@@ -204,20 +205,15 @@
         </form>
 
         <!-- Password Update Form -->
-        <form id="passwordForm">
+        <form id="passwordForm" class="mt-2">
           <div class="mb-3">
-            <label for="oldPassword" class="form-label">Current Password</label>
-            <input type="password" class="form-control" id="oldPassword" />
+            <input type="password" class="form-control" id="oldPassword" placeholder="Current Password" />
           </div>
           <div class="mb-3">
-            <label for="newPassword" class="form-label">New Password</label>
-            <input type="password" class="form-control" id="newPassword" />
+            <input type="password" class="form-control" id="newPassword" placeholder="New Password"/>
           </div>
           <div class="mb-3">
-            <label for="confirmPassword" class="form-label"
-              >Confirm New Password</label
-            >
-            <input type="password" class="form-control" id="confirmPassword" />
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" />
           </div>
           <button
             type="submit"
@@ -228,9 +224,9 @@
           </button>
         </form>
 		<!-- Two-Factor Authentication Update Form -->
-		<form id="twoFactorForm">
+		<form id="twoFactorForm" class="mt-2">
 			<div class="mb-3">
-				<label for="twoFactorType" class="form-label">Two-Factor Authentication</label>
+				<label for="twoFactorType" class="form-label" style='color:#fff;'>Two-Factor Authentication</label>
 				<select id="twoFactorType" class="form-select">
 					<option value="0">Disable 2FA</option>
 					<option value="2">Enable Email Verification</option>
