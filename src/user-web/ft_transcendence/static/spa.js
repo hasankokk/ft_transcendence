@@ -2,6 +2,7 @@ const funcMap = {
   Home: bindHome,
   Login: bindLogin,
   Pong: bindPongRoom,
+  "L-Pong": bindPongLocal,
   Chat: bindChat,
   ChatRoom: bindChatRoom,
   Ranking: bindRanking,

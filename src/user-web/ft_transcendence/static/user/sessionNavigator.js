@@ -26,14 +26,12 @@ function checkUserSession() {
 
 function updateUserNavbar(isLoggedIn) {
   // Kullanıcı giriş yapmışsa gösterilecek içerik ve buton
-  const rankingButton = document.getElementById("navRankingButton");
   const profileButton = document.getElementById("navProfileButton");
   const logoutButton = document.getElementById("navLogoutButton");
 
   // Kullanıcı çıkış yapmışsa gösterilecek giriş yap butonu
   const loginButton = document.getElementById("navLoginButton");
 
-  rankingButton.hidden = !isLoggedIn;
   profileButton.hidden = !isLoggedIn;
   logoutButton.hidden = !isLoggedIn;
 

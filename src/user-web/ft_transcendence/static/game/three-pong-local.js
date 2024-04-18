@@ -296,28 +296,19 @@ function resetCamera() {
 function movePlayer(key) {
   const movementFactor = 1;
 
-  if (!matchStarted) {
-    const otherPlayer = clientPlayer === "player0" ? "player1" : "player0";
-    const player = "ws".includes(key) ? clientPlayer : otherPlayer;
-    const new_pos = gameElements[player].mesh.position.clone();
-    if (key === "w") {
-      new_pos.y += movementFactor;
-    } else if (key === "s") {
-      new_pos.y -= movementFactor;
-    } else if (key === "ArrowUp") {
-      new_pos.y += movementFactor;
-    } else if (key === "ArrowDown") {
-      new_pos.y -= movementFactor;
-    }
-    setPlayer(player, new_pos);
-  } else {
-    if (pongSocket.readyState ?? null === WebSocket.OPEN) {
-      const toUp = true ? key === "w" : false;
-      if (pongCurrentPlayers.includes(getCookie("username"))) {
-        pongSocket.send(JSON.stringify({ type: "pong.move", to_up: toUp }));
-      }
-    }
+  const otherPlayer = clientPlayer === "player0" ? "player1" : "player0";
+  const player = "ws".includes(key) ? clientPlayer : otherPlayer;
+  const new_pos = gameElements[player].mesh.position.clone();
+  if (key === "w") {
+    new_pos.y += movementFactor;
+  } else if (key === "s") {
+    new_pos.y -= movementFactor;
+  } else if (key === "ArrowUp") {
+    new_pos.y += movementFactor;
+  } else if (key === "ArrowDown") {
+    new_pos.y -= movementFactor;
   }
+  setPlayer(player, new_pos);
 }
 
 function moveBall() {
@@ -497,13 +488,13 @@ function updateLabelPositions() {
 
 let matchStarted;
 let gameActive;
-window.gameTestInit = gameTestInit;
-window.gameInitBoard = initBoard;
-window.gameSetPlayer = setPlayer;
-window.gameSetBall = setBall;
-window.gameInitPlayer = initPlayer;
-window.gameInitBall = initBall;
-window.gameStartMatch = matchStart;
-window.gameFinishMatch = matchFinish;
-window.gameStarted = hasMatchStarted;
-window.gameActive = isGameActive;
+window.lGameTestInit = gameTestInit;
+window.lGameInitBoard = initBoard;
+window.lGameSetPlayer = setPlayer;
+window.lGameSetBall = setBall;
+window.lGameInitPlayer = initPlayer;
+window.lGameInitBall = initBall;
+window.lGameStartMatch = matchStart;
+window.lGameFinishMatch = matchFinish;
+window.lGameStarted = hasMatchStarted;
+window.lGameActive = isGameActive;

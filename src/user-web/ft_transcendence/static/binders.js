@@ -230,6 +230,10 @@ function bindPongRoom() {
   window.gameTestInit();
 }
 
+function bindPongLocal() {
+  window.lGameTestInit();
+}
+
 function bindAnchor(anchorInstance, func) {
   anchorInstance.removeEventListener("click", loadContentEvent);
 
