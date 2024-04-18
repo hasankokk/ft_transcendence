@@ -5,6 +5,7 @@ import random
 import math
 import asyncio
 import copy
+import requests
 from operator import itemgetter
 
 from pong.Vector import Vector2D
@@ -398,8 +399,9 @@ class Game:
                 loop_count += 1
         
         self.status = GameState.FINISHED
-        await asyncio.sleep(10)
         # Send game data to database
+        r = requests.post('http://user-web:8002/game/register/', json=self.get_ping_dict())
+        await asyncio.sleep(10)
         self.status = GameState.PENDING
 
         print("GAME FINISHED") # DEBUG
