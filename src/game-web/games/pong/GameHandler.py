@@ -110,6 +110,7 @@ class GameState(IntEnum):
     ACTIVE = 2
     LOOP_ENDED = 3
     FINISHED = 4
+    STARTING = 5
 
 class GameType(IntEnum):
     ONEVONE = 1
@@ -372,6 +373,9 @@ class Game:
         random.shuffle(pl_list)
         self.full_reset()
 
+        self.status = GameState.STARTING
+        await asyncio.sleep(3)
+
         if self.type == GameType.ONEVONE:
             await self.startMatch((pl_list[0], pl_list[1]))
         else:
@@ -416,6 +420,8 @@ class Game:
             if self.time_elapsed - self.time_started > self.time_max:
                 self.status = GameState.LOOP_ENDED
             await asyncio.sleep(20e-3) # 25ms
+
+        await asyncio.sleep(3)
 
         for p in players:
             self.players[p].times_played += 1

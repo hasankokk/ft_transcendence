@@ -408,7 +408,7 @@ function notifyNextPlayers(next_players) {
 }
 
 function isSameNextPlayers(arr1, arr2) {
-  if (arr1.length != arr2.length) {
+  if (arr1.length !== arr2.length) {
     return false;
   }
 
