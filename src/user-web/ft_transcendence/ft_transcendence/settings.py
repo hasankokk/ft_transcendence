@@ -40,7 +40,7 @@ if SECRET_KEY is None:
     os.environ['USER_WEB_SECRET_KEY'] = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get("GLOBAL_WEB_ALLOWED_HOSTS", "").split(",")
 ALLOWED_HOSTS += os.environ.get("USER_WEB_ALLOWED_HOSTS", "").split(",")

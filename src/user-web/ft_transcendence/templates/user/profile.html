@@ -15,14 +15,28 @@
       />
 		<h5 id="targetUsername">{{ target_user.username }}</h5>
         <div class="d-flex justify-content-center mb-2">
-          <!-- Add Friend Button, only visible if not viewing own profile -->
+          <!-- User relationship button(s), only visible if viewing other profile -->
           {% if user.pk != target_user.pk %}
-          <button type="button" class="btn btn-outline-primary me-2" onclick="sendFriendRequest()">Add Friend</button>
-                  <!-- Block User Button, only visible if not viewing own profile -->
-          <button type="button" class="btn btn-outline-danger" onclick="blockUser()">Block User</button>
+          {% if relationship == "none" %}
+          <button id="add-friend-button" type="button" class="btn btn-outline-primary me-2">Add Friend</button>
+          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
+          {% elif relationship == "receiving" %}
+          <button id="add-friend-button" type="button" class="btn btn-outline-success me-2">Accept Friend Request</button>
+          <button id="del-friend-button" type="button" class="btn btn-outline-warning me-2">Decline</button>
+          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
+          {% elif relationship == "sent" %}
+          <button id="del-friend-button" type="button" class="btn btn-outline-secondary me-2">Sent Friend Request</button>
+          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
+          {% elif relationship == "friend" %}
+          <button id="del-friend-button" type="button" class="btn btn-outline-warning me-2">Remove friend</button>
+          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
+          {% elif relationship == "blocking" %}
+          <button id="unblock-user-button" type="button" class="btn btn-outline-danger">Unblock</button>
+          {% elif relationship == "blocked" %}
+          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
           {% endif %}
-
-                  <!-- Edit Profile Button, only visible if viewing own profile -->
+          {% endif %}
+        <!-- Edit Profile Button, only visible if viewing own profile -->
         {% if user.pk == target_user.pk %}
         <button
           type="button"
@@ -233,7 +247,7 @@
 					<option value="3">Enable TOTP</option>
 				</select>
 			</div>
-			<button type="button" class="btn btn-primary mb-3" onclick="bindTwoFactor()">Update 2FA Setting</button>
+			<button id="profile-2fa-setting-submit" type="button" class="btn btn-primary mb-3">Update 2FA Setting</button>
 		</form>
         <!-- Delete Profile Button -->
         <div>

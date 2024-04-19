@@ -11,7 +11,7 @@ import os
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, username, email, password, **extra_fields):
+    def create_user(self, username, email, password=None, **extra_fields):
 
         if not username:
             raise ValueError(_('You must provide a username'))
@@ -100,6 +100,104 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.two_fa_auth_type = self.TwoFAType.NONE
         self.save()
 
+
+class UserRelationshipManager(models.Manager):
+
+    def get_type(self, sender: User, receiver: User):
+        user1, user2 = sorted((sender.pk, receiver.pk))
+
+        try:
+            record = UserRelationship.objects.get(user1_id=user1, user2_id=user2)
+
+            if record.is_friends():
+                return "friend"
+            elif record.is_blocking_mutual() or record.is_blocking_other(sender.pk):
+                return "blocking"
+            elif record.is_pending_other(sender.pk):
+                return "sent"
+            elif record.is_pending_other(receiver.pk):
+                return "receiving"
+            else:
+                return "blocked"
+            
+        except UserRelationship.DoesNotExist:
+            return "none"
+
+    def add_friend(self, sender: User, receiver: User):
+        user1, user2 = sorted((sender.pk, receiver.pk))
+
+        if sender.pk == user1:
+            type = UserRelationship.RelationshipType.PENDING12
+        else:
+            type = UserRelationship.RelationshipType.PENDING21
+
+        try:
+            record = UserRelationship.objects.get(user1_id=user1, user2_id=user2)
+            if record.is_pending_other(receiver.pk):
+                record.type = UserRelationship.RelationshipType.FRIENDS
+                record.save()
+                return True
+            return False
+        except UserRelationship.DoesNotExist:
+            UserRelationship.objects.create(user1_id=user1, user2_id=user2,
+                                            type=type)
+            return True
+
+    def remove_friend(self, sender, receiver):
+        user1, user2 = sorted((sender.pk, receiver.pk))
+
+        try:
+            record = UserRelationship.objects.get(user1_id=user1, user2_id=user2)
+            if record.is_pending_other(receiver.pk) or\
+                record.is_pending_other(sender.pk) or record.is_friends():
+                record.delete()
+                return True
+            return False
+        except UserRelationship.DoesNotExist:
+            return False
+
+    def block_user(self, sender, receiver):
+        user1, user2 = sorted((sender.pk, receiver.pk))
+
+        if sender.pk == user1:
+            type = UserRelationship.RelationshipType.BLOCK12
+        else:
+            type = UserRelationship.RelationshipType.BLOCK21
+
+        try:
+            record = UserRelationship.objects.get(user1_id=user1, user2_id=user2)
+            if record.is_blocking_other(receiver.pk):
+                record.type = UserRelationship.RelationshipType.BLOCKS
+            else:
+                record.type = type
+            record.save()
+            return True
+        except UserRelationship.DoesNotExist:
+            UserRelationship.objects.create(user1_id=user1, user2_id=user2,
+                                            type=type)
+            return True
+
+
+    def unblock_user(self, sender, receiver):
+        user1, user2 = sorted((sender.pk, receiver.pk))
+
+        try:
+            record = UserRelationship.objects.get(user1_id=user1, user2_id=user2)
+            if record.is_blocking_mutual():
+                if receiver.pk == user1:
+                    type = UserRelationship.RelationshipType.BLOCK12
+                else:
+                    type = UserRelationship.RelationshipType.BLOCK21
+                record.type = type
+                record.save()
+                return True
+            elif record.is_blocking_other(sender.pk):
+                record.delete()
+                return True
+            return False
+        except UserRelationship.DoesNotExist:
+            return False
+
 class UserRelationship(models.Model):
     class Meta:
         constraints = [
@@ -117,6 +215,8 @@ class UserRelationship(models.Model):
 
         __empty__ = _("Unknown")
 
+    objects = UserRelationshipManager()
+
     user1 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                               related_name="userRelationship_user1")
     user2 = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -127,15 +227,27 @@ class UserRelationship(models.Model):
     def __str__(self):
         return str(self.user1) + " & " + str(self.user2)
 
+    def is_pending_other(self, from_pk):
+        if from_pk == self.user1.pk:
+            return self.is_pending_user1()
+        return self.is_pending_user2()
+
+    def is_friends(self):
+        return self.type == self.RelationshipType.FRIENDS
+
+    def is_blocking_other(self, from_pk):
+        if from_pk == self.user1.pk:
+            return self.is_blocking_user1()
+        return self.is_blocking_user2()
+
+    def is_blocking_mutual(self):
+        return self.type == self.RelationshipType.BLOCKS
+
     def is_pending_user1(self):
         return self.type == self.RelationshipType.PENDING12
     def is_pending_user2(self):
         return self.type == self.RelationshipType.PENDING21
-    def is_friends(self):
-        return self.type == self.RelationshipType.FRIENDS
     def is_blocking_user1(self):
         return self.type == self.RelationshipType.BLOCK12
     def is_blocking_user2(self):
         return self.type == self.RelationshipType.BLOCK21
-    def is_blocking_mutual(self):
-        return self.type == self.RelationshipType.BLOCKS

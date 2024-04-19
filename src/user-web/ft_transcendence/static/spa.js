@@ -1,12 +1,23 @@
-const funcMap = {
+const navFuncMap = {
   Home: bindHome,
   Login: bindLogin,
   Pong: bindPongRoom,
   "L-Pong": bindPongLocal,
   Chat: bindChat,
   ChatRoom: bindChatRoom,
-  Ranking: bindRanking,
   Profile: bindProfile,
+};
+
+const urlFuncMap = {
+  "/home/": bindHome,
+  "/user/register/": bindRegister,
+  "/user/login/": bindLogin,
+  "/user/profile/": bindProfile,
+  "/user/two-factor/": bindTwoFactor,
+  "/game/pong/": bindPongRoom,
+  "/game/pong-local/": bindPongLocal,
+  "/chat/": bindChat,
+  "/chat/test/": bindChatRoom,
 };
 
 const items = document.getElementsByClassName("nav-item");
@@ -44,7 +55,10 @@ for (i = 0; i < items.length; i++) {
   const anchor = items[i].querySelector("a");
 
   if (anchor.text !== "Logout") {
-    bindAnchor(anchor, funcMap[anchor.text]);
+    anchor.addEventListener("click", (e) => {
+      e.preventDefault();
+      loadContent(e.currentTarget);
+    });
   } else {
     bindLogout(anchor);
   }
@@ -52,7 +66,7 @@ for (i = 0; i < items.length; i++) {
 
 window.addEventListener("load", (e) => {
   if (history.state == null) {
-    history.replaceState(getState("/home", funcMap["Home"]), "", "");
+    history.replaceState(getState("/home", urlFuncMap["/home/"]), "", "");
   }
   loadHistoryEvent(history);
 });
@@ -64,8 +78,4 @@ window.addEventListener("unload", (e) => {
 
 window.addEventListener("popstate", (e) => {
   loadHistoryEvent(e);
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  checkUserSession();
 });

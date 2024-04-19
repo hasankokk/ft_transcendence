@@ -156,7 +156,8 @@ def profileView(request, target_id = None):
         user = get_object_or_404(get_user_model(), id=target_id)
 
     history = extract_query(GameHistory.objects.get_user_history(user.pk), user.pk)
-    context = {"target_user" : user, "ranking": history}
+    relationship = UserRelationship.objects.get_type(request.user, user)
+    context = {"target_user" : user, "ranking": history, "relationship": relationship}
     return render(request, "user/profile.html", context)
 
 
@@ -236,6 +237,8 @@ def oauth_callback(request):
                 img.write(response.content)
                 img.flush()
                 user.image.save(os.path.basename(image_url), ImageFile(img), save=True)
+                user.set_unusable_password()
+                user.save()
 
             refresh = RefreshToken.for_user(user)
             response_data = {'success': True,
@@ -264,51 +267,45 @@ class FriendRequestView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        return Response({"warning": "unimplemented"})
-    def post(self, request):
-        data = JSONParser().parse(request)
-        serializer = serializers.UserPairSerializer(data=data)
-
-        if serializer.is_valid():
-            sender = request.user
-            receiver = get_object_or_404(get_user_model(), username=serializer.validated_data['receiver'])
-
-            try:
-                if sender.pk < receiver.pk:
-                    obj = UserRelationship.objects.get(Q(user1=sender),
-                                                       Q(user2=receiver))
-                    if obj.is_pending_user2():
-                        obj.type = UserRelationship.RelationshipType.FRIENDS
-                        obj.save()
-                        return Response({'success': 'Accepted friend request'})
-                    else:
-                        return Response({'error': 'Friend request cannot be sent'})
-                else:
-                    obj = UserRelationship.objects.get(Q(user2=sender),
-                                                       Q(user1=receiver))
-                    if obj.is_pending_user1():
-                        obj.type = UserRelationship.RelationshipType.FRIENDS
-                        obj.save()
-                        return Response({'success': 'Accepted friend request'})
-                    else:
-                        return Response({'error': 'Friend request cannot be sent'})
-            except UserRelationship.DoesNotExist:
-                # create new relationship
-                if sender.pk < receiver.pk:
-                    obj = UserRelationship.objects.create(user1=sender, user2=receiver,
-                                                          type=UserRelationship.RelationshipType.PENDING12)
-                else:
-                    obj = UserRelationship.objects.create(user2=sender, user1=receiver,
-                                                          type=UserRelationship.RelationshipType.PENDING21)
-                if obj is None:
-                    return Response({'error': 'Cannot create user relationship'})
-                else:
-                    return Response({'success': 'Friend request has been sent'})
+    def put(self, request, target_username):
+        sender = request.user
+        receiver = get_object_or_404(get_user_model(), username=target_username)
+        success = UserRelationship.objects.add_friend(sender, receiver)
+        if success:
+            return Response({'success': True, 'message': _('User add/accept friend request is successful')})
         else:
-            for error in serializer.errors:
-                messages.error(request, "Invalid Serializer:" + error)
-            return Response({"message": "An error has occured"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'success': False, 'errors': [_('Cannot add user as friend')]})
+
+    def delete(self, request, target_username):
+        sender = request.user
+        receiver = get_object_or_404(get_user_model(), username=target_username)
+        success = UserRelationship.objects.remove_friend(sender, receiver)
+        if success:
+            return Response({'success': True, 'message': _('User has been removed from friends')})
+        else:
+            return Response({'success': False, 'errors': [_('Cannot remove user from friends')]})
+
+class UserBlockView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, target_username):
+        sender = request.user
+        receiver = get_object_or_404(get_user_model(), username=target_username)
+        success = UserRelationship.objects.block_user(sender, receiver)
+        if success:
+            return Response({'success': True, 'message': _('User has been blocked')})
+        else:
+            return Response({'success': False, 'errors': [_('Cannot block user')]})
+
+    def delete(self, request, target_username):
+        sender = request.user
+        receiver = get_object_or_404(get_user_model(), username=target_username)
+        success = UserRelationship.objects.unblock_user(sender, receiver)
+        if success:
+            return Response({'success': True, 'message': _('User has been unblocked')})
+        else:
+            return Response({'success': False, 'errors': [_('Cannot unblock user')]})
 
 class TwoFactorAuthenticationView(APIView):
     def get(self, request):
@@ -358,7 +355,8 @@ def passwordChangeView(request):
     serializer = serializers.UserPasswordChangeSerializer(data=data)
 
     if serializer.is_valid():
-        if request.user.check_password(serializer.validated_data['old_password']):
+        if not request.user.has_usable_password() \
+            or request.user.check_password(serializer.validated_data['old_password']):
             p1 = serializer.validated_data['new_password1']
             p2 = serializer.validated_data['new_password2']
 
