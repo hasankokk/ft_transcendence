@@ -152,16 +152,6 @@ function chatRoomLoadEvent(event) {
 
 // ===== UTILS =====
 
-function isSocketOpen(socket) {
-  if (typeof socket !== "object") {
-    return false;
-  }
-  if (socket.readyState === WebSocket.OPEN) {
-    return true;
-  }
-  return false;
-}
-
 function updateOnlineList() {
   const online_info = JSON.parse(sessionStorage.getItem("online-info"));
   const target = document.getElementById("chat-room-online-log");

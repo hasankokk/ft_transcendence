@@ -22,14 +22,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-l0@7apy9_gl6d5*7(p))om1-ise_bva3vd#tvd4!x_egh%iet0"
+SECRET_KEY = os.environ.get("USER_WEB_SECRET_KEY", None)
+
+if SECRET_KEY is None:
+    import string
+    import secrets
+
+    symbols = list("!#%*+,-./:?@^_~")
+
+    SECRET_KEY = ""
+    for _ in range(10):
+        SECRET_KEY += secrets.choice(string.ascii_lowercase)
+        SECRET_KEY += secrets.choice(string.ascii_uppercase)
+        SECRET_KEY += secrets.choice(string.digits)
+        SECRET_KEY += secrets.choice(symbols)
+
+    os.environ['USER_WEB_SECRET_KEY'] = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'user-web']
+ALLOWED_HOSTS = os.environ.get("GLOBAL_WEB_ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS += os.environ.get("USER_WEB_ALLOWED_HOSTS", "").split(",")
 
-CSRF_TRUSTED_ORIGINS = ["https://localhost:3600"]
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(";")
 
 # Application definition
 
@@ -161,7 +177,7 @@ REST_FRAMEWORK = {
 
 # Rest Framwork Simple JWT settings
 
-SECRET_KEY = "verysecretkey" # JWT signature key
+SECRET_KEY = os.environ.get("JWT_KEY")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -205,13 +221,13 @@ SIMPLE_JWT = {
 
 # OAuth settings
 
-OAUTH_CLIENT_ID = 'u-s4t2ud-2c3d584b707d51304ce4637ccd8daa7d3bb9ee7b93bb9de496b56e42633a4780'
-OAUTH_CLIENT_SECRET = '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'
+OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
+OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
 OAUTH_REDIRECT_URI = 'https://localhost:3600/user/oauth-callback/'
 
 # Email settings
 
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'd7e25cb1cc8232'
-EMAIL_HOST_PASSWORD = 'f45ca8f790f18b'
-EMAIL_PORT = '2525'
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")

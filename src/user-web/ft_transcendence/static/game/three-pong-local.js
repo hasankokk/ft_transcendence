@@ -66,7 +66,7 @@ function gameTestInit() {
 }
 
 function animate() {
-  if (onGamePage ?? true) {
+  if (history.state.path === pongRoomUrl) {
     requestAnimationFrame(animate);
   }
 

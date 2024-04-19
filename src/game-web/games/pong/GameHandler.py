@@ -165,7 +165,7 @@ class Game:
             return True
         elif len(self.players) >= self.max_players:
             return False
-        elif GamePool.find_user(username) is None:
+        elif GamePool().find_user(username) is None:
             player = Player(self.board_size, self.paddle_size,
                             nickname=username, **kwargs)
             if len(self.players) == 0:
@@ -179,6 +179,7 @@ class Game:
         self.remove_channel(username)
         if self.status == GameState.PENDING:
             return self.players.pop(username, None)
+        return None
 
     def remove_channel(self, username : str):
         self.players[username].is_ready = False

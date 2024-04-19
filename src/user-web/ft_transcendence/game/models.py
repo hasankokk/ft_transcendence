@@ -141,13 +141,10 @@ class GameHistory(models.Model):
 
     type = models.IntegerField(choices=GameType)
 
-    date = models.DateField()
+    date = models.DateTimeField()
     length = models.DurationField()
 
     objects = GameHistoryManager()
-
-    def __str__(self):
-        return str(self.pk) + "#" + str(self.type)
 
     def player_count(self):
         return self.gamehistoryuser_set.count()
@@ -179,4 +176,4 @@ class GameHistoryUser(models.Model):
     wins = models.IntegerField()
 
     def __str__(self):
-        return str(get_user_model().objects.get(pk=self.user)) + "@" + str(self.game)
+        return self.user.username + "@" + str(self.game.type)

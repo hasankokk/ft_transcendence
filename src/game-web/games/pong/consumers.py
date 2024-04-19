@@ -25,7 +25,8 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
         created = GamePool().add_game(self.room_name)
         if not GamePool()[self.room_name].add_player(self.channel_name, self.username):
             self.username = None
-            GamePool().remove_game(self.room_name)
+            if created:
+                GamePool().remove_game(self.room_name)
             await self.close()
             return
 
@@ -48,8 +49,7 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
         else:
             GamePool()[self.room_name].remove_player(self.username)
 
-        if len(GamePool()[self.room_name]) <= 1:
-            # TODO If game is complete and not in pending state, send game data to database
+        if len(GamePool()[self.room_name]) < 1:
             GamePool().remove_game(self.room_name)
 
         await self.channel_layer.group_discard(self.room_name,

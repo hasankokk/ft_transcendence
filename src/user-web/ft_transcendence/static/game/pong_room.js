@@ -1,9 +1,9 @@
 let pongRoomConnected = {};
 let pongRoomName;
-let isConnected = false;
 let pongGameType;
 let pongNextPlayers = [];
 let pongCurrentPlayers = [];
+let pongRedraw = false;
 
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
@@ -16,77 +16,24 @@ function pongRoom() {
       }
     });
 
-  if (isConnected) {
+  if (isSocketOpen(pongSocket)) {
     setDisabledPongRoom(false);
+    setTimeout(function () {
+      pongRedraw = true;
+    }, 500);
   } else {
     setDisabledPongRoom(true);
   }
 
-  document.getElementById("pong-room-switch-type").addEventListener("click", function (e) {
-    pingSwitchType(pongSocket);
-  });
+  document
+    .getElementById("pong-room-switch-type")
+    .addEventListener("click", function (e) {
+      pingSwitchType(pongSocket);
+    });
 
-  document.querySelector("#pong-room-connect").onclick = function (e) {
-    const messageInputDom = document.querySelector("#pong-room-input");
-    const message = messageInputDom.value;
-    const roomName = message;
-
-    if (isConnected) {
-      pongSocket.close();
-    }
-
-    pongSocket = new WebSocket(
-      "wss://" + window.location.host + "/ws/pong/" + roomName + "/"
-    );
-
-    pongSocket.onopen = function (e) {
-      pongRoomName = roomName;
-      document.querySelector("#pong-message-log").value +=
-        "[!] Connected to " + pongSocket.url + "\n";
-
-      setDisabledPongRoom(false);
-      isConnected = true;
-    };
-
-    pongSocket.onmessage = function (e) {
-      if (!onGamePage) {
-        return;
-      }
-      const info = JSON.parse(e.data);
-      if (("type" in info) & (info.type === "pong.status")) {
-        const log = document.querySelector("#pong-ping-log");
-        log.value = JSON.stringify(info, null, 4);
-        if (("current_players" in info) & (info.current_players.length > 0)) {
-          replaceOutput(
-            info.players[info.current_players[0]],
-            "pong-player1-log",
-            ["0", info.current_players[0]]
-          );
-          replaceOutput(
-            info.players[info.current_players[1]],
-            "pong-player2-log",
-            ["1", info.current_players[1]]
-          );
-        }
-        handlePongGame(info);
-      } else {
-        document.querySelector("#pong-message-log").value +=
-          info.message + "\n";
-      }
-    };
-
-    pongSocket.onclose = function (e) {
-      const log = document.querySelector("#pong-message-log");
-      if (typeof log != "null") {
-        log.value += "[!] Pong socket closed at " + pongSocket.url + "\n";
-      }
-
-      setDisabledPongRoom();
-      isConnected = false;
-      pongRoomName = null;
-    };
-
-    document.querySelector("#pong-message-submit").onclick = function (e) {
+  document
+    .querySelector("#pong-message-submit")
+    .addEventListener("click", function (e) {
       const messageInputDom = document.querySelector("#pong-message-input");
       const message = messageInputDom.value;
       let type;
@@ -104,8 +51,64 @@ function pongRoom() {
         })
       );
       messageInputDom.value = "";
-    };
-  };
+    });
+
+  document
+    .querySelector("#pong-room-connect")
+    .addEventListener("click", function (e) {
+      const messageInputDom = document.querySelector("#pong-room-input");
+      const message = messageInputDom.value;
+      const roomName = message;
+
+      if (isSocketOpen(pongSocket)) {
+        pongSocket.close();
+      }
+
+      pongSocket = new WebSocket(
+        "wss://" + window.location.host + "/ws/pong/" + roomName + "/"
+      );
+
+      pongSocket.onopen = function (e) {
+        pongRoomName = roomName;
+        document.querySelector("#pong-message-log").value +=
+          "[!] Connected to " + pongSocket.url + "\n";
+
+        setDisabledPongRoom(false);
+      };
+
+      pongSocket.onmessage = function (e) {
+        const info = JSON.parse(e.data);
+        if (info.type === "pong.status") {
+          const log = document.getElementById("pong-ping-log");
+          if (log !== null) log.value = JSON.stringify(info, null, 4);
+          if (("current_players" in info) & (info.current_players.length > 0)) {
+            replaceOutput(
+              info.players[info.current_players[0]],
+              "pong-player1-log",
+              ["0", info.current_players[0]]
+            );
+            replaceOutput(
+              info.players[info.current_players[1]],
+              "pong-player2-log",
+              ["1", info.current_players[1]]
+            );
+          }
+          handlePongGame(info);
+        } else {
+          const log = document.getElementById("pong-message-log");
+          if (log !== null) log.value += info.message + "\n";
+        }
+      };
+
+      pongSocket.onclose = function (e) {
+        const log = document.getElementById("pong-message-log");
+        if (log !== null) {
+          log.value += "[!] Pong socket closed at " + pongSocket.url + "\n";
+        }
+        setDisabledPongRoom();
+        pongRoomName = null;
+      };
+    });
 
   document.querySelector("#pong-room-disconnect").onclick = function (e) {
     pongSocket.close();
@@ -122,17 +125,6 @@ function pongRoom() {
   document.querySelector("#pong-room-move-down").onclick = function (e) {
     pingMove(pongSocket, false);
   };
-}
-
-function pingPong(socket) {
-  if (isConnected) {
-    socket.send(
-      JSON.stringify({
-        type: "pong.status",
-        message: "",
-      })
-    );
-  }
 }
 
 function pingReady(socket) {
@@ -164,7 +156,7 @@ function pingSwitchType(socket) {
   socket.send(
     JSON.stringify({
       type: "pong.setting",
-      settings: {type: targetType},
+      settings: { type: targetType },
     })
   );
 }
@@ -199,6 +191,7 @@ function syntaxHighlight(json) {
 
 function replaceOutput(input, targetElementId, playerInfo = ["x", "username"]) {
   const target = document.getElementById(targetElementId);
+  if (target === null) return;
   target.innerHTML = "";
   target.appendChild(document.createElement("h3")).innerHTML =
     "player " + playerInfo[0] + ": " + playerInfo[1];
@@ -217,9 +210,10 @@ function setDisabledPongRoom(setBool = true) {
 function handlePongGame(info) {
   pongGameType = info.game_type;
   pongCurrentPlayers = info.current_players;
-  
+
   updateScoreBoard(info);
-  if (info.status === 2 && !window.gameActive()) {
+  if (pongRedraw || (info.status === 2 && !window.gameActive())) {
+    pongRedraw = false;
     window.gameInitBoard(info.board_size[0], info.board_size[1]);
     let ball = ballDict(info.ball);
     window.gameInitBall(ball.pos, ball.vel, ball.rad);
@@ -240,7 +234,7 @@ function handlePongGame(info) {
       );
       count += 1;
     }
-    window.gameStartMatch();
+    if (info.status === 2) window.gameStartMatch();
   } else if ((info.status === 3 || info.status === 4) && window.gameActive()) {
     window.gameFinishMatch();
   } else if (info.status === 2) {
@@ -286,8 +280,8 @@ function updateScoreLabel(info) {
   const score0 = info.players[info.current_players[0]].score;
   const score1 = info.players[info.current_players[1]].score;
 
-  document.getElementById("pong-score-label").innerText =
-    score0 + " - " + score1;
+  const label = document.getElementById("pong-score-label");
+  if (label !== null) label.innerText = score0 + " - " + score1;
 }
 
 function updateScoreBoard(info) {
@@ -303,7 +297,7 @@ function updateScoreBoard(info) {
     ];
   }
 
-  if (!isSameConnected(pongRoomConnected, stripped)) {
+  if (pongRedraw || !isSameConnected(pongRoomConnected, stripped)) {
     pongRoomConnected = stripped;
 
     const element = document.getElementById("pong-player-scores");
@@ -373,7 +367,6 @@ function isSameConnected(dict1, dict2) {
 }
 
 function notifyNextPlayers(next_players) {
-
   if (isSameNextPlayers(pongNextPlayers, next_players)) {
     return;
   }
@@ -384,7 +377,7 @@ function notifyNextPlayers(next_players) {
   toastEl.setAttribute("role", "alert");
   toastEl.setAttribute("aria-live", "assertive");
   toastEl.setAttribute("aria-atomic", "true");
-  
+
   const header = toastEl.appendChild(document.createElement("div"));
   header.classList.add("toast-header");
   const strong = header.appendChild(document.createElement("strong"));
@@ -398,7 +391,11 @@ function notifyNextPlayers(next_players) {
 
   const body = toastEl.appendChild(document.createElement("div"));
   body.classList.add("toast-body");
-  body.innerHTML = "Next players in tournament " + pongNextPlayers[0] + " vs " + pongNextPlayers[1];
+  body.innerHTML =
+    "Next players in tournament " +
+    pongNextPlayers[0] +
+    " vs " +
+    pongNextPlayers[1];
 
   document.getElementById("toast-content").appendChild(toastEl);
 

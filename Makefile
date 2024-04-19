@@ -21,6 +21,9 @@ refresh:
 	docker image rm -f $(PARENT_DIR)-game-nginx
 	docker system prune
 	docker volume prune
+	docker volume rm -f $(PARENT_DIR)_user-media
+	docker volume rm -f $(PARENT_DIR)_user-postgres
+	docker volume rm -f $(PARENT_DIR)_user-static
 
 up: start
 down: stop

@@ -22,26 +22,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-_35tgpj7j_!-d_c4xrn*74*==!4i#mm51_9d7taqh!-(sr_r$2"
+SECRET_KEY = os.environ.get("CHAT_WEB_SECRET_KEY", None)
+
+if SECRET_KEY is None:
+    import string
+    import secrets
+
+    symbols = list("!#%*+,-./:?@^_~")
+
+    SECRET_KEY = ""
+    for _ in range(10):
+        SECRET_KEY += secrets.choice(string.ascii_lowercase)
+        SECRET_KEY += secrets.choice(string.ascii_uppercase)
+        SECRET_KEY += secrets.choice(string.digits)
+        SECRET_KEY += secrets.choice(symbols)
+
+    os.environ['CHAT_WEB_SECRET_KEY'] = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]', 'chat-web']
-
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3600"]
-
+ALLOWED_HOSTS = os.environ.get("GLOBAL_WEB_ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS += os.environ.get("CHAT_WEB_ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
 INSTALLED_APPS = [
     "daphne",
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
     "chatapp",
@@ -49,31 +58,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "chat.urls"
 
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-]
+TEMPLATES = []
 
 WSGI_APPLICATION = "chat.wsgi.application"
 ASGI_APLLICATION = "chat.asgi.application"
@@ -91,31 +81,13 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+DATABASES = {}
 
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+AUTH_PASSWORD_VALIDATORS = []
 
 
 # Internationalization
@@ -128,14 +100,6 @@ TIME_ZONE = "Europe/Istanbul"
 USE_I18N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-STATIC_URL = "/static/"
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles") # if enabled, add "python manage.py collectstatic --no-input" in docker-compose
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -152,7 +116,7 @@ REST_FRAMEWORK = {
 
 # Rest Framwork Simple JWT settings
 
-SECRET_KEY = "verysecretkey" # JWT signature key
+SECRET_KEY = os.environ.get("JWT_KEY")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

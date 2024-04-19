@@ -4,10 +4,8 @@ services:
     restart: always
     volumes:
       - user-postgres:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=ft_transcendence
-      - POSTGRES_USER=ecole
-      - POSTGRES_PASSWORD=super_secret_password
+    env_file:
+      - path: postgres.env
     healthcheck:
       test: "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h user-db"
       interval: 5s
@@ -29,11 +27,10 @@ services:
     depends_on:
       user-db:
           condition: service_healthy
-    environment:
-      - POSTGRES_DB=ft_transcendence
-      - POSTGRES_USER=ecole
-      - POSTGRES_PASSWORD=super_secret_password
-      - JWT_KEY=verysecretkey
+    env_file:
+      - path: postgres.env
+      - path: jwt.env
+      - path: user-web.env
 
   user-nginx:
     build: src/user-web/nginx
@@ -55,13 +52,14 @@ services:
   chat-web:
     build: src/chat-web
     command: >
-      sh -c "python manage.py makemigrations &&
-             python manage.py migrate &&
-             daphne -b 0.0.0.0 -p 8002 chat.asgi:application"
+      sh -c "daphne -b 0.0.0.0 -p 8002 chat.asgi:application"
     expose:
       - "8002"
     depends_on:
       - chat-redis
+    env_file:
+      - jwt.env
+      - chat-web.env
 
   chat-nginx:
     build: src/chat-web/nginx
@@ -80,13 +78,14 @@ services:
   game-web:
     build: src/game-web
     command: >
-      sh -c "python manage.py makemigrations &&
-             python manage.py migrate &&
-             daphne -b 0.0.0.0 -p 8002 games.asgi:application"
+      sh -c "daphne -b 0.0.0.0 -p 8002 games.asgi:application"
     expose:
       - "8002"
     depends_on:
       - game-redis
+    env_file:
+      - path: jwt.env
+      - path: game-web.env
 
   game-nginx:
     build: src/game-web/nginx

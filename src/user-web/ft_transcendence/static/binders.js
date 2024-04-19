@@ -276,15 +276,6 @@ function loadContent(anchorInstanceOrPath, pushHistory = true) {
         history.pushState(state, "", "");
       }
       element.innerHTML = text;
-
-      if (!requestUrl.startsWith("/game/")) {
-        if (!requestUrl.startsWith("/chat/")) {
-          closeSocket(pongSocket);
-        }
-        onGamePage = false;
-      } else {
-        onGamePage = true;
-      }
     });
   checkUserSession();
   return false;

@@ -7,17 +7,9 @@ function checkUserSession() {
     .then((data) => {
       console.log(data); // Oturum durumunu kontrol et
       updateUserNavbar(data.isLoggedIn);
-      if (data.isLoggedIn & (typeof chatSocket === "undefined")) {
+      if (data.isLoggedIn && !isSocketOpen(chatSocket)) {
         initiateChatSocket();
-      } else if (
-        data.isLoggedIn &
-        (chatSocket.readyState === WebSocket.CLOSED)
-      ) {
-        initiateChatSocket();
-      } else if (
-        !data.isLoggedIn &
-        (chatSocket.readyState === WebSocket.OPEN)
-      ) {
+      } else if (!data.isLoggedIn && isSocketOpen(chatSocket)) {
         chatSocket.close();
       }
     })
@@ -36,6 +28,16 @@ function updateUserNavbar(isLoggedIn) {
   logoutButton.hidden = !isLoggedIn;
 
   loginButton.hidden = isLoggedIn;
+}
+
+function isSocketOpen(socket) {
+  if (typeof socket !== "object") {
+    return false;
+  }
+  if (socket.readyState === WebSocket.OPEN) {
+    return true;
+  }
+  return false;
 }
 
 function initiateChatSocket() {
