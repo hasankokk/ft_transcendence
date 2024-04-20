@@ -67,7 +67,11 @@
 <div span style="display: flex; justify-content: center; align-items: center; height: 100%; ">
 	<h1 style="color: white;">Please login to continue</h1>
 {% endif %}
-
+<div>
+    <button id="dummyButton" onclick="fetch('{% url 'user:dummy-scores' %}', {method: 'PUT'}); return false;">
+        Create Dummies
+    </button>
+</div>
 <!-- Authentication and other includes remain unchanged -->
 
 {% include 'eoc.html' %}
