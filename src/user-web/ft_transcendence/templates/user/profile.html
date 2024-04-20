@@ -15,28 +15,14 @@
       />
 		<h5 id="targetUsername">{{ target_user.username }}</h5>
         <div class="d-flex justify-content-center mb-2">
-          <!-- User relationship button(s), only visible if viewing other profile -->
+          <!-- Add Friend Button, only visible if not viewing own profile -->
           {% if user.pk != target_user.pk %}
-          {% if relationship == "none" %}
-          <button id="add-friend-button" type="button" class="btn btn-outline-primary me-2">Add Friend</button>
-          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
-          {% elif relationship == "receiving" %}
-          <button id="add-friend-button" type="button" class="btn btn-outline-success me-2">Accept Friend Request</button>
-          <button id="del-friend-button" type="button" class="btn btn-outline-warning me-2">Decline</button>
-          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
-          {% elif relationship == "sent" %}
-          <button id="del-friend-button" type="button" class="btn btn-outline-secondary me-2">Sent Friend Request</button>
-          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
-          {% elif relationship == "friend" %}
-          <button id="del-friend-button" type="button" class="btn btn-outline-warning me-2">Remove friend</button>
-          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
-          {% elif relationship == "blocking" %}
-          <button id="unblock-user-button" type="button" class="btn btn-outline-danger">Unblock</button>
-          {% elif relationship == "blocked" %}
-          <button id="block-user-button" type="button" class="btn btn-outline-danger">Block</button>
+          <button type="button" class="btn btn-outline-primary me-2" onclick="sendFriendRequest()">Add Friend</button>
+                  <!-- Block User Button, only visible if not viewing own profile -->
+          <button type="button" class="btn btn-outline-danger" onclick="blockUser()">Block User</button>
           {% endif %}
-          {% endif %}
-        <!-- Edit Profile Button, only visible if viewing own profile -->
+
+                  <!-- Edit Profile Button, only visible if viewing own profile -->
         {% if user.pk == target_user.pk %}
         <button
           type="button"
@@ -139,34 +125,63 @@
                   aria-expanded="false"
                   aria-controls="collapse_{{ game.id }}"
                 >
-                  score {{ game.target_player.total_score }},
-                  type {{ game.type }},
-                  {% if game.type == "TOURNAMENT" %}
-                  placed at: {{ game.target_player.place }}
-                  {% else %}
-                  has_won? {{ game.target_player.has_won }}
-                  {% endif %}
+                <div class="container text-center">
+                  <div class="row" style="color:white;">
+                    <div class="col justify-content-between">
+                      {% if game.type == "TOURNAMENT" %}
+                          {% if game.target_player.has_won %}
+                              The tournament has won and situation is 1!
+                          {% else %}
+                              The tournament has lost and situation is {{ game.target_player.place }}!
+                          {% endif %}
+                      {% else %}
+                          {% if game.target_player.has_won %}
+                              The match has won!
+                          {% else %}
+                              The match has lost!
+                          {% endif %}
+                      {% endif %}
+                    </div>
+                    <div class="col justify-content-between">
+                      {% if game.target_player.has_won %}
+                      <span class="badge bg-success">V I C T O R Y</span>
+                      {% else %}
+                      <span class="badge bg-danger">D E F E A T</span>
+                      {% endif %}
+                    </div>
+                    <div class="col justify-content-between" style="color:cadetblue;">
+                      <span>{{ game.date }}</span>
+                    </div>
+                  </div>
+                </div>
                 </button>
               </h2>
               <div
                 id="collapse_{{ game.id }}"
                 class="accordion-collapse collapse"
                 data-bs-parent="#profileAccordion"
+                style="backdrop-filter: blur(10px);"
               >
                 <div class="accordion-body">
-                  this is game {{ game.id }}, occured at {{ game.date }}, lasted
-                  for {{ game.length }}.
                   <ul>
+                    {% if game.type == "TOURNAMENT" %}
+                      <span>Game Mode : Tournament</span>
+                    {% else %}
+                      <span>Game Mode : 1v1</span>
+                    {% endif %}
+                    <br>
                     {% for player in game.players %}
-                    <li>
                       {% if player.id != "null" %}
                       <a href="{% url 'user:target-profile' target_id=player.id %}">{{ player.username }}</a>
                       {% else %}
                       <a href="/home/">{{ player.username }}</a>
                       {% endif %}
-                      total_score {{ player.total_score }} wins {{ player.wins }}
-                    </li>
+                      's status : 
+                      <br>
+                      Total Score [{{ player.total_score }}] and Wins [{{ player.wins }}]
+                      <br>
                     {% endfor %}
+                    
                   </ul>
                 </div>
               </div>
@@ -247,7 +262,7 @@
 					<option value="3">Enable TOTP</option>
 				</select>
 			</div>
-			<button id="profile-2fa-setting-submit" type="button" class="btn btn-primary mb-3">Update 2FA Setting</button>
+			<button type="button" class="btn btn-primary mb-3" onclick="bindTwoFactor()">Update 2FA Setting</button>
 		</form>
         <!-- Delete Profile Button -->
         <div>
