@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   user-db:
     image: postgres
@@ -5,7 +7,7 @@ services:
     volumes:
       - user-postgres:/var/lib/postgresql/data
     env_file:
-      - path: envfiles/postgres.env
+      - envfiles/postgres.env
     healthcheck:
       test: "/usr/bin/pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -h user-db"
       interval: 5s
@@ -28,9 +30,9 @@ services:
       user-db:
           condition: service_healthy
     env_file:
-      - path: envfiles/postgres.env
-      - path: envfiles/web-global.env
-      - path: envfiles/user-web.env
+      - envfiles/postgres.env
+      - envfiles/web-global.env
+      - envfiles/user-web.env
 
   user-nginx:
     build: src/user-web/nginx
@@ -84,8 +86,8 @@ services:
     depends_on:
       - game-redis
     env_file:
-      - path: envfiles/web-global.env
-      - path: envfiles/game-web.env
+      - envfiles/web-global.env
+      - envfiles/game-web.env
 
   game-nginx:
     build: src/game-web/nginx
