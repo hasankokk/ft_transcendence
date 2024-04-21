@@ -53,6 +53,27 @@ min-width: 50px;
   width: 100%;
 }
 
+.white-glow {
+  animation: white-glow 3s ease-in infinite alternate;
+}
+
+@keyframes white-glow {
+  from {
+    text-shadow: 0 0 5px #ffffff70, 0 0 10px #ffffff40;
+  }
+  
+  to {
+    text-shadow: 0 0 10px #ffffffb0, 0 0 20px rgba(26, 183, 255, 0.314);
+  }
+}
+
+.light-text-gradient {
+  background:  linear-gradient(to right, rgb(202, 202, 202), rgb(197, 238, 239), rgb(216, 189, 163));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .wrapper31 {
   position: absolute;
   top: 50%;
