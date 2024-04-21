@@ -123,6 +123,34 @@ class UserRelationshipManager(models.Manager):
         except UserRelationship.DoesNotExist:
             return "none"
 
+    def incoming_requests_set(self, receiver: User) -> set[User]:
+        """Returns a set of users who sent friend requests to receiver"""
+        recv_as_user1 = UserRelationship.objects.filter(user1=receiver, type=UserRelationship.RelationshipType.PENDING21)
+        recv_as_user2 = UserRelationship.objects.filter(user2=receiver, type=UserRelationship.RelationshipType.PENDING12)
+
+        sending = set()
+
+        for relation in recv_as_user1:
+            sending.add(relation.user2)
+        for relation in recv_as_user2:
+            sending.add(relation.user1)
+
+        return sending
+
+    def friends_set(self, user: User) -> set[User]:
+        relations = UserRelationship.objects.filter(Q(user1=user) | Q(user2=user), type=UserRelationship.RelationshipType.FRIENDS)
+
+        friends = set()
+
+        for relation in relations:
+            if relation.user1.username == user.username:
+                friends.add(relation.user2)
+            else:
+                friends.add(relation.user1)
+
+        return friends
+            
+
     def add_friend(self, sender: User, receiver: User):
         user1, user2 = sorted((sender.pk, receiver.pk))
 

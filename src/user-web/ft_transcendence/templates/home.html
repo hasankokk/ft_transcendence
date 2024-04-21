@@ -4,55 +4,57 @@
         <div class="col-md-4 col-xl-3 chat">
             <div class="card mb-sm-3 mb-md-0 contacts_card">
                 <div class="card-header">
-                    <li>
-                        <div class="d-flex bd-highlight">
-                            <div class="img_cont">
-                                <img src="{% url 'user:get-user-image' user_id=request.user.pk %}" class="rounded-circle user_img">
-                                <span class="online_icon"></span>
-                            </div>
-                            <div class="user_info" style="background-color: rgba(136, 37, 7, 0.418);">
-                                <span>{{ request.user.username }}</span>
-                            </div>
-                        </div>
-                    </li>
+                    <h4 class="text-light fw-light">
+                        Friends
+                    </h4>
                 </div>
                 <div class="card-body contacts_body">
                     <ul class="contacts">
-                        {% for relationship in user_relationships %}
-                            {% if relationship.is_friends %}
-                                <li class="active">
-                                    <div class="d-flex bd-highlight">
-                                        <div class="img_cont">
-                                            <img src="{% url 'user:get-user-image' user_id=relationship.user2.pk %}" class="rounded-circle user_img">
-                                            <span class="online_icon"></span>
-                                        </div>
-                                        <div class="user_info">
-                                            <span>{{ relationship.user2.username }}</span>
-                                        </div>
-                                    </div>
-                                </li>
-                            {% endif %}
+                        {% for friend_user in friends %}
+                        <li>
+                            <div class="d-flex bd-highlight">
+                                <div class="img_cont">
+                                    <img src="{% url 'user:get-user-image' user_id=friend_user.id %}" class="rounded-circle user_img">
+                                    <span class="online_icon"></span>
+                                </div>
+                                <div class="user_info">
+                                    <a
+                                    class="link-light link-underline link-underline-opacity-0"
+                                    href="{% url 'user:target-profile' target_id=friend_user.id %}">
+                                        {{ friend_user.username }}
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
                         {% endfor %}
                     </ul>
                 </div>
 					<div class="card-footer"></div>
 				</div></div>
 				<div class="col-md-8 col-xl-6 chat">
-					<div class="card">
+					<div class="card py-3">
 						<div class="card-header msg_head">
-							<div class="d-flex bd-highlight">
-								<div class="user_info">
-									<span>Friend Requests</span>
-								</div>
-							</div>
-						</div>
-						<div class="card-body">
-							<ul>
-								<li>
-									<span>Hasan Kök has sent you a friend request.</span>
-											<!-- Accept and Reject buttons here -->
+                            <h4 class="fw-light text-light">
+                                Friend Requests
+                            </h4>
+                        </div>
+						<div class="card-body overflow-x-hidden overflow-y-auto">
+                            {% if incoming|length > 0 %}
+							<ul class="list-group list-group-flush text-end">
+                                {% for pending_user in incoming %}
+								<li class="list-group-item text-light bg-transparent">
+                                    <a
+                                    class="link-info link-underline link-underline-opacity-0"
+                                    href="{% url 'user:target-profile' target_id=pending_user.id %}">
+                                        {{ pending_user.username }}
+                                    </a>
+                                    has sent you a friend request.
 								</li>
+                                {% endfor %}
 							</ul>
+                            {% else %}
+                            <span>You have no incoming friend requests.</span>
+                            {% endif %}
 						</div>
 					</div>
 				</div>
