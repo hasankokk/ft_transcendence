@@ -4,6 +4,7 @@ let pongGameType;
 let pongNextPlayers = [];
 let pongCurrentPlayers = [];
 let pongRedraw = false;
+let pongDrawn = false;
 
 function pongRoom() {
   document.querySelector("#pong-message-input").focus();
@@ -96,7 +97,11 @@ function pongRoom() {
           handlePongGame(info);
         } else {
           const log = document.getElementById("pong-message-log");
-          if (log !== null) log.value += info.message + "\n";
+          if (log !== null) {
+            onTop = log.scrollHeight === log.scrollTop;
+            log.value += info.message + "\n";
+            if (onTop) log.scrollTop = log.scrollHeight;
+          }
         }
       };
 
@@ -212,7 +217,12 @@ function handlePongGame(info) {
   pongCurrentPlayers = info.current_players;
 
   updateScoreBoard(info);
-  if (pongRedraw || (info.status === 2 && !window.gameActive())) {
+
+  if (info.status === 5 && !pongDrawn) {
+    pongRedraw = true;
+  }
+
+  if (pongRedraw) {
     pongRedraw = false;
     window.gameInitBoard(info.board_size[0], info.board_size[1]);
     let ball = ballDict(info.ball);
@@ -234,7 +244,11 @@ function handlePongGame(info) {
       );
       count += 1;
     }
-    if (info.status === 2) window.gameStartMatch();
+    pongDrawn = true;
+  }
+  else if (info.status === 2 && !window.gameActive()) {
+    pongDrawn = false;
+    window.gameStartMatch();
   } else if ((info.status === 3 || info.status === 4) && window.gameActive()) {
     window.gameFinishMatch();
   } else if (info.status === 2) {

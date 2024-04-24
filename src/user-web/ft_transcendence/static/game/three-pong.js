@@ -193,7 +193,14 @@ function makeBall(radius, color, vel_x = 1, vel_y = 1) {
 }
 
 function makePlayer(width, height, color, posx, velocity = 0.2) {
-  const geometry = new THREE.BoxGeometry(width, height, 2);
+  let geometry;
+
+  if ("ball" in gameElements) {
+    const radius = gameElements.ball.mesh.geometry.parameters.radius;
+    geometry = new THREE.BoxGeometry(width, height, 2 * radius);
+  } else {
+    geometry = new THREE.BoxGeometry(width, height, 2);
+  }
   const material = new THREE.MeshPhysicalMaterial({ color: color });
   const player = new THREE.Mesh(geometry, material);
   player.position.set(
@@ -432,6 +439,8 @@ function initBoard(width, height) {
   updateLabelPositions();
   gameElements.board.add(gameElements.timerLabel.object);
   gameElements.timerLabel.object.add(gameElements.scoreLabel.object);
+
+  resetCamera();
 }
 
 function initPlayer(player, pos, vel, width, height, nickname, username) {

@@ -104,14 +104,16 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
         message = event["message"]
         info_prefix = "Pong: "
         info = "Unrecognized command"
+        fields = message.split()
+        game = GamePool()[self.room_name]
+        player = game[username]
 
         if message.startswith("/games"):
             info = str(GamePool())
 
-        if message.startswith("/list"):
-            fields = message.split()
+        elif message.startswith("/list"):
             if len(fields) == 1:
-                info = str(GamePool()[self.room_name])
+                info = str(game)
             else:
                 info = ""
                 for room in fields[1:]:
@@ -120,17 +122,50 @@ class AsyncTestConsumer(AsyncWebsocketConsumer):
                     except KeyError:
                         info += room + ": " + "None" + "; "
 
-        if message.startswith("/nick"):
-            fields = message.split()
+        elif message.startswith("/nick"):
             if len(fields) == 1:
-                user = GamePool()[self.room_name][self.username]
-                info = str(user.nickname if user is not None else "")
+                info = str(player.nickname if player is not None else "")
             else:
-                if GamePool()[self.room_name].is_nick_unique(fields[1]):
-                    GamePool()[self.room_name][self.username].set_nick(fields[1])
-                    info = "nickname set to " + GamePool()[self.room_name][self.username].nickname
+                if game.is_nick_unique(fields[1]):
+                    player.set_nick(fields[1])
+                    info = "nickname set to " + player.nickname
                 else:
                     info = "someone else has already picked that nickname"
+
+        elif message.startswith("/set"):
+            if len(fields) != 3:
+                info = "  Options: board_size (2), paddle_size (2), time_max (1), ball_radius (1), ball_velocity (2)\n \
+                Example usage: \n\
+                    \"/set board_size 500,200\"\n\
+                    \"/set time_max 20\""
+            elif not player.is_owner:
+                info = "Only the room owner can update the settings."
+            else:
+                dims = []
+                if fields[1] == "board_size" or fields[1] == "paddle_size" or fields[1] == "ball_velocity":
+                    dims = fields[2].split(",")
+                    if len(dims) != 2:
+                        info = "Incorrect number of dimensions."
+                if fields[1] == "board_size" and len(dims) == 2:
+                    info = game.update_settings({'board_size': (dims[0], dims[1])})
+                elif fields[1] == "paddle_size" and len(dims) == 2:
+                    info = game.update_settings({'paddle_size': (dims[0], dims[1])})
+                elif fields[1] == "ball_velocity" and len(dims) == 2:
+                    info = game.update_settings({'ball_velocity': (dims[0], dims[1])})
+                elif fields[1] == "time_max":
+                    info = game.update_settings({'time_max': (fields[2])})
+                elif fields[1] == "ball_radius":
+                    info = game.update_settings({'ball_radius': (fields[2])})
+                else:
+                    info = "Incorrect option."
+
+        elif message.startswith("/help"):
+            info = "  games                : shows the list of all pong rooms\n\
+            list (room_name)     : shows the list of users in current room or in room_name\n\
+            nick <nickname>      : sets a new nickname if available\n\
+            set <option> <value> : changes a parameter in the game, call \"/set\" to learn more about options\
+            "
+            
                 
         response = msg_prefix + message + "\n" + info_prefix + info
         await self.send(text_data=json.dumps({"type": "chat.command", "message": response}))

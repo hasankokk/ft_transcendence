@@ -39,6 +39,9 @@ class Player:
     def toggle_position_x(self):
         self.position.x = -self.position.x
 
+    def set_default_position(self, board_size : Vector2D, paddle_size : Vector2D):
+        self.def_position = abs(Vector2D(board_size.x / 2 - paddle_size.x, 0))
+
     def move(self, to_up : bool, factor, player_margin):
         direction = 1 if to_up else -1
 
@@ -157,6 +160,8 @@ class Game:
         self.player_margin.x = self.board_size.x * 0.5 - self.paddle_size.x
         if not is_init:
             self.ball.update_margin(self.board_size, self.player_margin)
+            for p in self.players:
+                self.players[p].set_default_position(self.board_size, self.paddle_size)
 
     def add_player(self, channel_name, username, **kwargs) -> bool:
         if username in self.players and \
@@ -196,26 +201,33 @@ class Game:
         #   confirm settings has all required fields, then update
 
         if self.status == GameState.PENDING:
-            for s in settings:
-                if s == "board_size":
-                    board_size : tuple[float, float] = settings[s]
-                    self.board_size = abs(Vector2D(board_size[0], board_size[1]))
-                    self.update_player_margin()
-                elif s == "paddle_size":
-                    paddle_size : tuple[float, float] = settings[s]
-                    self.paddle_size = abs(Vector2D(paddle_size[0], paddle_size[1]))
-                    self.update_player_margin()
-                elif s == "timemax":
-                    self.time_max = int(settings[s])
-                elif s == "type":
-                    gtype = GameType.TOURNAMENT if settings[s] == "TOURNAMENT" else GameType.ONEVONE
-                    self.set_type(gtype)
-                elif s == "ball_radius":
-                    rad = float(settings[s])
-                    self.set_ball(radius=rad, velocity=self.ball.def_velocity)
-                elif s == "ball_velocity":
-                    vel = float(settings[s])
-                    self.set_ball(radius=self.ball.radius, velocity=vel)
+            try:
+                for s in settings:
+                    if s == "board_size":
+                        board_size = tuple(float(n) for n in settings[s])
+                        self.board_size = abs(Vector2D(board_size[0], board_size[1]))
+                        self.update_player_margin()
+                    elif s == "paddle_size":
+                        paddle_size = tuple(float(n) for n in settings[s])
+                        self.paddle_size = abs(Vector2D(paddle_size[0], paddle_size[1]))
+                        self.update_player_margin()
+                    elif s == "time_max":
+                        self.time_max = int(settings[s])
+                    elif s == "type":
+                        gtype = GameType.TOURNAMENT if settings[s] == "TOURNAMENT" else GameType.ONEVONE
+                        self.set_type(gtype)
+                    elif s == "ball_radius":
+                        rad = float(settings[s])
+                        self.set_ball(radius=rad, velocity=self.ball.def_velocity)
+                    elif s == "ball_velocity":
+                        vel = tuple(float(n) for n in settings[s])
+                        self.set_ball(radius=self.ball.radius, velocity=vel)
+
+                return "Settings updated successfuly"
+            except Exception as e:
+                return str(e)
+        else:
+            return "The game is not in pending state"
 
     def is_active(self):
         return self.status == GameState.ACTIVE
