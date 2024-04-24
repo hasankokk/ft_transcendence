@@ -157,7 +157,9 @@ def profileView(request, target_id = None):
 
     history = extract_query(GameHistory.objects.get_user_history(user.pk), user.pk)
     relationship = UserRelationship.objects.get_type(request.user, user)
-    context = {"target_user" : user, "ranking": history, "relationship": relationship}
+    summary = GameHistory.objects.get_user_summary(user)
+    context = {"target_user" : user, "ranking": history,
+               "relationship": relationship, "summary": summary}
     return render(request, "user/profile.html", context)
 
 

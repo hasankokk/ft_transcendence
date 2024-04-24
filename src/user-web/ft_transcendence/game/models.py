@@ -53,6 +53,35 @@ def extract_query(history, target_user=None):
     return games
 
 class GameHistoryManager(models.Manager):
+
+    def get_user_summary(self, user) -> dict:
+        games = GameHistory.objects.prefetch_related('gamehistoryuser_set').filter(gamehistoryuser__user=user)
+
+        onevsone = {'total': 0, 'wins': 0, 'losses': 0}
+        tournament = {'total': 0, 'first': 0, 'second': 0, 'third': 0}
+
+        for game in games:
+            counter = 1
+            for player in game.gamehistoryuser_set.all():
+                if player.user == user:
+                    if game.type == GameHistory.GameType.ONEVONE:
+                        onevsone['total'] += 1
+                        if counter == 1:
+                            onevsone['wins'] += 1
+                        else:
+                            onevsone['losses'] += 1
+                    else:
+                        tournament['total'] += 1
+                        if counter == 1:
+                            tournament['first'] += 1
+                        elif counter == 2:
+                            tournament['second'] += 1
+                        elif counter == 3:
+                            tournament['third'] += 1
+                counter += 1
+
+        return {'onevsone': onevsone, 'tournament': tournament}
+
     def get_user_history(self, user_id, last=10):
         records = GameHistoryUser.objects.filter(user=user_id).order_by("-game__date")
         count = records.count()
@@ -62,7 +91,7 @@ class GameHistoryManager(models.Manager):
         else:
             records = records[0:last]
 
-        return GameHistory.objects.filter(pk__in=records.values("game"))
+        return GameHistory.objects.filter(pk__in=records.values("game")).prefetch_related('gamehistoryuser_set')
 
     def get_user_best(self, user_id, last=3):
         records = GameHistoryUser.objects.filter(user=user_id).order_by("-wins", "-total_score")
@@ -73,7 +102,7 @@ class GameHistoryManager(models.Manager):
         else:
             records = records[0:last]
 
-        return GameHistory.objects.filter(pk__in=records.values("game"))
+        return GameHistory.objects.filter(pk__in=records.values("game")).prefetch_related('gamehistoryuser_set')
 
     def get_ranking(self, last=10):
         records = GameHistoryUser.objects.order_by("-wins", "-total_score")
@@ -84,7 +113,7 @@ class GameHistoryManager(models.Manager):
         else:
             records = records[0:last]
 
-        return GameHistory.objects.filter(pk__in=records.values("game"))
+        return GameHistory.objects.filter(pk__in=records.values("game")).prefetch_related('gamehistoryuser_set')
 
     def create_dummy_scores(self):
         if GameHistory.objects.count() != 0:

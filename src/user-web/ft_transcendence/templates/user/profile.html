@@ -90,12 +90,55 @@
                   </div>
                 </div>
                 <hr />
+                {% if user.pk == target_user.pk %}
                 <div class="row">
                   <div class="col-sm-3">
                     <p class="text-danger mb-0">Email</p>
                   </div>
                   <div class="col-sm-9">
                     <p class="mb-0">{{ target_user.email }}</p>
+                  </div>
+                </div>
+                <hr />
+                {% endif %}
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">One vs One</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <div class="row justify-content-between">
+                      <div class="col">
+                        Total: {{ summary.onevsone.total }}
+                      </div>
+                      <div class="col">
+                        Wins: {{ summary.onevsone.wins }}
+                      </div>
+                      <div class="col">
+                        Losses: {{ summary.onevsone.losses }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <hr />
+                <div class="row">
+                  <div class="col-sm-3">
+                    <p class="text-danger mb-0">Tournament</p>
+                  </div>
+                  <div class="col-sm-9">
+                    <div class="row justify-content-between">
+                      <div class="col">
+                        Total: {{ summary.tournament.total }}
+                      </div>
+                      <div class="col">
+                        1st: {{ summary.tournament.first }}
+                      </div>
+                      <div class="col">
+                        2nd: {{ summary.tournament.second }}
+                      </div>
+                      <div class="col">
+                        3rd: {{ summary.tournament.third }}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <hr />
@@ -128,27 +171,21 @@
                   <div class="row" style="color:white;">
                     <div class="col justify-content-between" style="text-align: left;">
                       {% if game.type == "TOURNAMENT" %}
-                          {% if game.target_player.has_won %}
-                              The tournament has won!
-                          {% else %}
-                              The tournament has lost!
-                          {% endif %}
+                          Tournament
                       {% else %}
-                          {% if game.target_player.has_won %}
-                              The match has won!
-                          {% else %}
-                              The match has lost!
-                          {% endif %}
+                          One vs One
                       {% endif %}
                     </div>
                     <div class="col justify-content-between">
                       {% if game.type == "TOURNAMENT" %}
-                      {% if game.target_player.has_won %}
-                        <span class="badge bg-warning">PLACED AT 1</span>
+                      {% if game.target_player.place == 1 %}
+                        <span class="badge bg-warning">PLACED AT {{ game.target_player.place }}</span>
                       {% elif game.target_player.place == 2 %}
-                      <span class="badge bg-secondary">PLACED AT 2</span>
+                      <span class="badge bg-secondary">PLACED AT {{ game.target_player.place }}</span>
+                      {% elif game.target_player.place == 3 %}
+                        <span class="badge" style="background-color: #CD7F32;">PLACED AT {{ game.target_player.place }}</span>
                       {% else %}
-                        <span class="badge bg-danger">PLACED AT {{ game.target_player.place }}</span>
+                        <span class="badge" style="background-color: #8C2C3C;">PLACED AT {{ game.target_player.place }}</span>
                       {% endif %}
                   {% else %}
                       {% if game.target_player.has_won %}

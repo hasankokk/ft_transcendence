@@ -420,7 +420,8 @@ class Game:
 
         while (self.status != GameState.LOOP_ENDED):
             await self.cycle(players)
-            if self.time_elapsed - self.time_started > self.time_max:
+            if self.time_elapsed - self.time_started > self.time_max \
+                and self.players[players[0]].score != self.players[players[1]].score:
                 self.status = GameState.LOOP_ENDED
             await asyncio.sleep(20e-3) # 25ms
 
