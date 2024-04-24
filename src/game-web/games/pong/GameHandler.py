@@ -102,7 +102,10 @@ class Ball:
 
             if pos_x < self.score_marginx:
                 if paddle_range[0] < self.position.y < paddle_range[1]:
-                    self.velocity.x = -self.velocity.x
+                    if self.position.x > 0 and self.velocity.x > 0:
+                        self.velocity.x = -self.velocity.x
+                    elif self.position.x < 0 and self.velocity.x < 0:
+                        self.velocity.x = -self.velocity.x
                 return True
             else:
                 return False
@@ -387,9 +390,6 @@ class Game:
         random.shuffle(pl_list)
         self.full_reset()
 
-        self.status = GameState.STARTING
-        await asyncio.sleep(3)
-
         if self.type == GameType.ONEVONE:
             await self.startMatch((pl_list[0], pl_list[1]))
         else:
@@ -420,13 +420,15 @@ class Game:
         print("GAME FINISHED") # DEBUG
 
     async def startMatch(self, players : tuple[str, str]):
-        self.status = GameState.ACTIVE
         self.current_players = players
         for p in players:
             self.players[p].reset_game_variables()
             self.players[p].is_playing = True
             self.players[p].score = 0
         self.players[players[0]].toggle_position_x()
+        self.status = GameState.STARTING
+        await asyncio.sleep(4)
+        self.status = GameState.ACTIVE
         self.time_started = time()
         self.time_elapsed = self.time_started
 

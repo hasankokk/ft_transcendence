@@ -17,6 +17,16 @@ function pongRoom() {
       }
     });
 
+  document
+    .getElementById("pong-message-log")
+    .addEventListener("keydown", function (e) {
+      if (e.key == "Escape") {
+        const target = document.getElementById("webgl");
+        target.style.visibility = "visible";
+        target.focus();
+      }
+    })
+
   if (isSocketOpen(pongSocket)) {
     setDisabledPongRoom(false);
     setTimeout(function () {
@@ -71,9 +81,16 @@ function pongRoom() {
 
       pongSocket.onopen = function (e) {
         pongRoomName = roomName;
-        document.querySelector("#pong-message-log").value +=
-          "[!] Connected to " + pongSocket.url + "\n";
-
+        const msgLog = document.getElementById("pong-message-log");
+        if (msgLog !== null) {
+          msgLog.value += "[!] Connected to " + pongSocket.url + "\n";
+          msgLog.value += "======================================================\n";
+          msgLog.value += "Player controls: W,S\nCamera controls: H,J,K,L,N,M\n\n";
+          msgLog.value += "A match is concluded if time limit is reached\n";
+          msgLog.value += "and one player scores more than the other.\n\n";
+          msgLog.value += "Type \"/help\" to learn more about commands\n";
+          msgLog.value += "======================================================\n";
+        }
         setDisabledPongRoom(false);
       };
 

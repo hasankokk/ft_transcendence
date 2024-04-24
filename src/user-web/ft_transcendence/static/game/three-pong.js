@@ -167,7 +167,7 @@ function setSceneVariables() {
   gameElements.scoreLabel.element.className = "label";
   gameElements.scoreLabel.element.id = "pong-score-label";
   gameElements.scoreLabel.element.textContent = "0 - 0";
-  gameElements.scoreLabel.element.style.backgroundColor = "#ffffff30";
+  gameElements.scoreLabel.element.style.backgroundColor = "#ffffffa0";
   gameElements.scoreLabel.element.style.color = "black";
   gameElements.scoreLabel.element.style.padding = "5px";
 
@@ -214,7 +214,7 @@ function makePlayer(width, height, color, posx, velocity = 0.2) {
   const playerDiv = document.createElement("div");
   playerDiv.textContent = "Player0";
   playerDiv.style.color = "black";
-  playerDiv.style.background = "#ffffff30";
+  playerDiv.style.background = "#ffffffa0";
   playerDiv.style.padding = "5px";
   playerDiv.style.borderRadius = "8px";
   const label = new CSS2DObject(playerDiv);
@@ -246,6 +246,9 @@ function gameKeyDownEvents(event) {
     } else {
       matchStart();
     }
+  } else if (event.key === "Escape") {
+    document.getElementById("webgl").style.visibility = "hidden";
+    document.getElementById("pong-message-log").focus();
   }
 }
 
