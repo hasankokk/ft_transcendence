@@ -3,7 +3,7 @@ const navFuncMap = {
   Login: bindLogin,
   Pong: bindPongRoom,
   "L-Pong": bindPongLocal,
-  Chat: bindChat,
+  Chat: bindChatRoom,
   ChatRoom: bindChatRoom,
   Profile: bindProfile,
 };
@@ -16,7 +16,7 @@ const urlFuncMap = {
   "/user/two-factor/": bindTwoFactor,
   "/game/pong/": bindPongRoom,
   "/game/pong-local/": bindPongLocal,
-  "/chat/": bindChat,
+  "/chat/": bindChatRoom,
   "/chat/test/": bindChatRoom,
 };
 
@@ -26,7 +26,7 @@ let bindFunc;
 let chatSocket;
 let pongSocket;
 let pongRoomUrl = "/game/pong/";
-let intervalInventory = {home: null,};
+let intervalInventory = {home: null, pong_local: null};
 const observer = new MutationObserver(function (mutations) {
   for (const mutation of mutations) {
     console.log(mutation); // DEBUG

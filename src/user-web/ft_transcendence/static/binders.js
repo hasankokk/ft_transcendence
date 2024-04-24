@@ -62,10 +62,6 @@ function bindProfile() {
   profileEvents();
 }
 
-function bindChat() {
-  chatFunction();
-}
-
 function bindChatRoom() {
   chatRoom();
 }
@@ -77,6 +73,7 @@ function bindPongRoom() {
 
 function bindPongLocal() {
   window.lGameTestInit();
+  LocalPongLogicInit();
 }
 
 /*function bindAnchor(anchorInstance) {
