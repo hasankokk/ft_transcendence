@@ -1,36 +1,35 @@
-.chat .chat {
+.chat {
     margin-top: auto;
     margin-bottom: auto;
 }
 
-.chat .card {
-    display: flex;
+.contacts-card {
     height: 500px;
     border-radius: 15px ;
     background-color: rgba(0, 0, 0, 0.4) ;
 }
 
-.chat .contacts_body {
+.contacts_body {
     padding: 0.75rem 0 ;
     overflow-y: auto;
     white-space: nowrap;
 }
 
-.chat .msg_card_body {
+.msg_card_body {
     overflow-y: auto;
 }
 
-.chat .card-header {
+/*.card-header {
     border-radius: 15px 15px 0 0 ;
     border-bottom: 0 ;
-}
+}*/
 
-.chat .card-footer {
+/*.card-footer {
     border-radius: 0 0 15px 15px ;
     border-top: 0 ;
-}
+}*/
 
-.chat .type_msg {
+.type_msg {
     background-color: rgba(0, 0, 0, 0.3) ;
     border: 0 ;
     color: white ;
@@ -38,12 +37,12 @@
     overflow-y: auto;
 }
 
-.chat .type_msg:focus {
+.type_msg:focus {
     box-shadow: none ;
     outline: 0px ;
 }
 
-.chat .send_btn {
+.send_btn {
     border-radius: 0 15px 15px 0 ;
     background-color: rgba(0, 0, 0, 0.3) ;
     border: 0 ;
@@ -51,7 +50,7 @@
     cursor: pointer;
 }
 
-.chat .search_btn {
+.search_btn {
     border-radius: 0 15px 15px 0 ;
     background-color: rgba(0, 0, 0, 0.3) ;
     border: 0 ;
@@ -59,45 +58,45 @@
     cursor: pointer;
 }
 
-.chat .contacts {
+.contacts {
     list-style: none;
     padding: 0;
 }
 
-.chat .contacts li {
+/*.contacts li {
     width: 100% ;
     padding: 5px 10px;
     margin-bottom: 15px ;
-}
+}*/
 
-.chat .active {
+.active {
     background-color: rgba(0, 0, 0, 0.3);
 }
 
-.chat .user_img {
+.user_img {
     height: 60px;
     width: 60px;
     border: 1.5px solid #f5f6fa;
 }
 
-.chat .user_img_msg {
+.user_img_msg {
     height: 40px;
     width: 40px;
     border: 1.5px solid #f5f6fa;
 }
 
-.chat .img_cont {
+.img_cont {
     position: relative;
     height: 70px;
     width: 70px;
 }
 
-.chat .img_cont_msg {
+.img_cont_msg {
     height: 40px;
     width: 40px;
 }
 
-.chat .online_icon {
+.online_icon {
     position: absolute;
     height: 15px;
     width: 15px;
@@ -108,39 +107,46 @@
     border: 1.5px solid white;
 }
 
-.chat .offline {
-    background-color: #c23616 ;
+.offline_icon {
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    background-color: #989898;
+    border-radius: 50%;
+    bottom: 13px;
+    right: 13px;
+    border: 1.5px solid white;
 }
 
-.chat .user_info {
+.user_info {
     margin-top: auto;
     margin-bottom: auto;
     margin-left: 15px;
 }
 
-.chat .user_info span {
+/*.user_info span {
     font-size: 20px;
     color: white;
-}
+}*/
 
-.chat .user_info p {
+/*.user_info p {
     font-size: 10px;
     color: rgba(255, 255, 255, 0.6);
-}
+}*/
 
-.chat .video_cam {
+.video_cam {
     margin-left: 50px;
     margin-top: 5px;
 }
 
-.chat .video_cam span {
+/*.video_cam span {
     color: white;
     font-size: 20px;
     cursor: pointer;
     margin-right: 20px;
-}
+}*/
 
-.chat .msg_cotainer {
+.msg_cotainer {
     margin-top: auto;
     margin-bottom: auto;
     margin-left: 10px;
@@ -150,7 +156,7 @@
     position: relative;
 }
 
-.chat .msg_cotainer_send {
+.msg_cotainer_send {
     margin-top: auto;
     margin-bottom: auto;
     margin-right: 10px;
@@ -160,11 +166,11 @@
     position: relative;
 }
 
-.chat .msg_head {
+.msg_head {
     position: relative;
 }
 
-.chat #action_menu_btn {
+#action_menu_btn {
     position: absolute;
     right: 10px;
     top: 10px;
@@ -173,7 +179,7 @@
     font-size: 20px;
 }
 
-.chat .action_menu {
+.action_menu {
     z-index: 1;
     position: absolute;
     padding: 15px 0;
@@ -185,40 +191,40 @@
     display: none;
 }
 
-.chat .action_menu ul {
+/*.action_menu ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.chat .action_menu ul li {
+.action_menu ul li {
     width: 100%;
     padding: 10px 15px;
     margin-bottom: 5px;
 }
 
-.chat .action_menu ul li i {
+.action_menu ul li i {
     padding-right: 10px;
 }
 
-.chat .action_menu ul li:hover {
+.action_menu ul li:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);
-}
+}*/
 
-.chat ::-webkit-scrollbar {
+/*::-webkit-scrollbar {
     width: 10px;
 }
 
-.chat ::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
     background: #f1f1f1;
 }
 
-.chat ::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
     background: #888;
 }
 
-.chat ::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
 
@@ -227,3 +233,4 @@
         margin-bottom: 15px ;
     }
 }
+*/

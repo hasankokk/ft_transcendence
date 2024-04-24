@@ -52,7 +52,9 @@ function bindLogout(anchorInstance) {
   });
 }
 
-function bindHome() {}
+function bindHome() {
+  homeUpdateLoop();
+}
 
 function bindRanking() {}
 

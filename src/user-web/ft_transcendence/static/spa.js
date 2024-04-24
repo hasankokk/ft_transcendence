@@ -26,6 +26,7 @@ let bindFunc;
 let chatSocket;
 let pongSocket;
 let pongRoomUrl = "/game/pong/";
+let intervalInventory = {home: null,};
 const observer = new MutationObserver(function (mutations) {
   for (const mutation of mutations) {
     console.log(mutation); // DEBUG
@@ -66,7 +67,7 @@ for (i = 0; i < items.length; i++) {
 
 window.addEventListener("load", (e) => {
   if (history.state == null) {
-    history.replaceState(getState("/home", urlFuncMap["/home/"]), "", "");
+    history.replaceState(getState("/home/", urlFuncMap["/home/"]), "", "");
   }
   loadHistoryEvent(history);
 });

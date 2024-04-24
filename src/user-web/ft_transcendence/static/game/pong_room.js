@@ -19,13 +19,11 @@ function pongRoom() {
 
   document
     .getElementById("pong-message-log")
-    .addEventListener("keydown", function (e) {
-      if (e.key == "Escape") {
-        const target = document.getElementById("webgl");
-        target.style.visibility = "visible";
-        target.focus();
-      }
-    })
+    .addEventListener("keydown", pongRoomLogEscapeEvent);
+
+  document
+    .getElementById("pong-message-input")
+    .addEventListener("keydown", pongRoomLogEscapeEvent);
 
   if (isSocketOpen(pongSocket)) {
     setDisabledPongRoom(false);
@@ -92,6 +90,9 @@ function pongRoom() {
           msgLog.value += "======================================================\n";
         }
         setDisabledPongRoom(false);
+        const target = document.getElementById("webgl");
+        target.style.visibility = "visible";
+        target.focus();
       };
 
       pongSocket.onmessage = function (e) {
@@ -447,4 +448,12 @@ function isSameNextPlayers(arr1, arr2) {
   }
 
   return true;
+}
+
+function pongRoomLogEscapeEvent(event) {
+  if (event.key == "Escape") {
+    const target = document.getElementById("webgl");
+    target.style.visibility = "visible";
+    target.focus();
+  }
 }
