@@ -74,6 +74,8 @@ function bindPongRoom() {
 function bindPongLocal() {
   window.lGameTestInit();
   LocalPongLogicInit();
+  document.cookie = 'selectedTournament=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  document.cookie = 'playerData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 }
 
 /*function bindAnchor(anchorInstance) {

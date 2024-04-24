@@ -99,7 +99,6 @@ function open1v1Modal() {
         // Ana kısımdaki butonları ve radio inputları kaldır
         var mainButtons = document.querySelector('.btn-group-vertical');
         mainButtons.style.display = 'none';
-        window.lGameStartMatch();
     });
 }
 
@@ -222,10 +221,8 @@ function openTournamentModal() {
         // Ana kısımdaki butonları ve radio inputları kaldır
         var mainButtons = document.querySelector('.btn-group-vertical');
         mainButtons.style.display = 'none';
-        window.lGameStartMatch();
     });
 }
-
 
 // Cookie'den veriyi çekme fonksiyonu
 function getCookie(name) {

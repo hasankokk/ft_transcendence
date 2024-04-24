@@ -41,6 +41,7 @@ function isSocketOpen(socket) {
 }
 
 function initiateChatSocket() {
+  console.log('initiating chatSocket...');
   chatSocket = new WebSocket("wss://" + window.location.host + "/ws/chat-api/");
   chatSocket.onmessage = chatSocketReceive;
   chatSocket.onopen = chatSocketOpen;
