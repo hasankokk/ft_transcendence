@@ -34,7 +34,7 @@ CSRF doğrulaması yapılan POST/PUT/DELETE istekleri için Host başlığında 
 #### JWT_KEY
 - Kullanan servisler: user-web, game-web, chat-web
 
-#### OAUTH_CLIENT_ID / OAUTH_CLIENT_SECRET
+#### OAUTH_CLIENT_ID / OAUTH_CLIENT_SECRET / OAUTH_CLIENT_REDIRECT
 42 Login API bilgileri
 - Kullanan servisler: user-web
 

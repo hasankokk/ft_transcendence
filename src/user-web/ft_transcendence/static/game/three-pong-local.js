@@ -38,7 +38,7 @@ let skor_1 = 0;
 let alertStatus = false;
 let alertStatus_1 = false;
 
-let max_set_skor = 3;
+let max_set_skor = 1;
 let set_skor_0 = 0;
 let set_skor_1 = 0;
 
@@ -172,7 +172,7 @@ function setSceneVariables() {
 
   // Default ball setup
 
-  gameElements["ball"] = makeBall(2, 0x109440, 10, 5);
+  gameElements["ball"] = makeBall(2, 0x109440, 20, 15);
   scene.add(gameElements.ball.mesh);
 
   const radius = gameElements.ball.mesh.geometry.parameters.radius;
@@ -547,23 +547,23 @@ function tournament_4vs()
       gameElements.player0.label.element.textContent = playerData.player3.name;
       gameElements.player1.label.element.textContent = playerData.player4.name;
     }
-    if (set_skor_0 >= max_set_skor && match_count == 2)
+    else if (set_skor_0 >= max_set_skor && match_count == 2)
     {
       alert("Match 3: " + tournament_4a["win_1"] + " vs " + JSON.parse(getCookie("playerData")).player3.name);
-      tournament_4a["win_2"] = playerData.player3.name;
       var playerData = JSON.parse(getCookie("playerData"));
+      tournament_4a["win_2"] = playerData.player3.name;
       gameElements.player0.label.element.textContent = tournament_4a["win_1"];
       gameElements.player1.label.element.textContent = playerData.player3.name;
     }
     else if (set_skor_1 >= max_set_skor && match_count == 2)
     {
       alert("Match 3: " + tournament_4a["win_1"] + " vs " + JSON.parse(getCookie("playerData")).player4.name);
-      tournament_4a["win_2"] = playerData.player4.name;
       var playerData = JSON.parse(getCookie("playerData"));
+      tournament_4a["win_2"] = playerData.player4.name;
       gameElements.player0.label.element.textContent = tournament_4a["win_1"];
       gameElements.player1.label.element.textContent = playerData.player4.name;
     }
-    if (set_skor_0 >= max_set_skor && match_count == 3)
+    else if (set_skor_0 >= max_set_skor && match_count == 3)
     {
       alert(tournament_4a["win_1"] +" won the tournament");
       document.querySelector('.btn-group-vertical').style.display = "block";
@@ -579,11 +579,8 @@ function tournament_4vs()
       document.cookie = 'selectedTournament=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       document.cookie = 'playerData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     }
-    else
-    {
-      set_skor_0 = 0;
-      set_skor_1 = 0;
-    }
+    set_skor_0 = 0;
+    set_skor_1 = 0;
   }
 }
 

@@ -223,7 +223,7 @@ SIMPLE_JWT = {
 
 OAUTH_CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID")
 OAUTH_CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET")
-OAUTH_REDIRECT_URI = 'https://localhost:3600/user/oauth-callback/'
+OAUTH_REDIRECT_URI = os.environ.get("OAUTH_CLIENT_REDIRECT")
 
 # Email settings
 

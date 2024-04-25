@@ -93,6 +93,8 @@ function updateContentAnchors() {
     Set SPA switch for all anchors in element (#main-content)
     */
 
+  console.log("calling updatecontentAnchors..."); // DEBUG
+  
   const element = document.getElementById("main-content");
   const anchors = element.querySelectorAll("a");
 
